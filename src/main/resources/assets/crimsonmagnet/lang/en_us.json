@@ -1,4 +1,5 @@
 {
   "tip.crimsonmagnet.item": "A simple magnet for attracting items and xp orbs",
-  "item.crimsonmagnet.magnet": "Crimson Magnet"
+  "item.crimsonmagnet.magnet": "Crimson Magnet",
+  "curios.identifier.magnet": "Magnet Slot"
 }

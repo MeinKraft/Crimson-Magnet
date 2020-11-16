@@ -119,6 +119,9 @@ dependencies {
 
     compileOnly fg.deobf("mcjty.theoneprobe:TheOneProbe-1.16:${top_version}:api")
     runtimeOnly fg.deobf("mcjty.theoneprobe:TheOneProbe-1.16:${top_version}")
+
+    compileOnly fg.deobf("top.theillusivec4.curios:curios-forge:${minecraft_version}-${curios_version}:api")
+    runtimeOnly fg.deobf("top.theillusivec4.curios:curios-forge:${minecraft_version}-${curios_version}")
 }
 
 // Example for how to get properties into the manifest for reading by the runtime..
@@ -169,5 +172,9 @@ repositories {
     maven {
         name 'JEI'
         url "https://dvs1.progwml6.com/files/maven"
+    }
+    maven {
+        name 'curios'
+        url "https://maven.theillusivec4.top/"
     }
 }
