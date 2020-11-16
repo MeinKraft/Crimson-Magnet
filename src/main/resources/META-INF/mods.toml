@@ -1,0 +1,25 @@
+modLoader="javafml"
+loaderVersion="[${loader_version},)"
+license="All rights reserved"
+issueTrackerURL="http://my.issue.tracker/" #optional
+
+[[mods]]
+modId="crimsonmagnet"
+version="${version}"
+displayName="Crimson Magnet"
+displayURL="http://crimsonfluff.com/"
+authors="§4Crimson_Fluff"
+logoFile="logo.png" #optional
+credits="\n§bRaziel23x§r for casually giving me the push I needed !\n§bTechnovision§r for his awesome modding YouTube series\n§bTurtyWurty§r for his awesome modding YouTube series" #optional
+description=''' This is my first attempt at basic Minecraft 1.16.4 modding  '''
+
+[[dependencies.crimsonmagnet]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[${mc_version}]"
+  side="BOTH"
+[[dependencies.crimsonmagnet]]
+    modId="forge"
+    mandatory=true
+    versionRange="[${forge_version},)"
+    side="BOTH"
