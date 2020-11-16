@@ -24,12 +24,12 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import java.util.List;
 
 public class ItemMagnet extends Item {
-    public ItemMagnet() { super(new Item.Properties().group(ItemGroup.MISC)); }
+    public ItemMagnet() { super(new Item.Properties().group(ItemGroup.MISC).maxStackSize(1)); }
 
     @OnlyIn(Dist.CLIENT)
     @Override
     public void addInformation(ItemStack stack, World worldIn, List<ITextComponent> tooltip, ITooltipFlag flagIn) {
-        tooltip.add((new TranslationTextComponent("tip." + CrimsonMagnet.MOD_ID).mergeStyle(TextFormatting.GRAY)));
+        tooltip.add((new TranslationTextComponent("tip." + CrimsonMagnet.MOD_ID + ".item").mergeStyle(TextFormatting.GRAY)));
 
         String isXPCS;
         if (CrimsonMagnet.CONFIGURATION.magnetCollectXP.get())
@@ -60,35 +60,36 @@ public class ItemMagnet extends Item {
         else fPitch = 0.01f;
         playerIn.world.playSound(null, playerIn.getPosX(), playerIn.getPosY(), playerIn.getPosZ(), SoundEvents.BLOCK_NOTE_BLOCK_BELL, SoundCategory.PLAYERS, 1f, fPitch);
 
-        //MyFirstMod.LOGGER.info("Ruby Enabled: " + active);
-
         return new ActionResult<>(ActionResultType.SUCCESS, stack);
     }
 
     // item enchant glint
     @Override
-    public boolean hasEffect(ItemStack stack) {
-        return (stack.getOrCreateTag().getBoolean("active"));
-    }
+    public boolean hasEffect(ItemStack stack) { return (stack.getOrCreateTag().getBoolean("active")); }
 
     @Override
     public void inventoryTick(ItemStack stack, World worldIn, Entity entityIn, int itemSlot, boolean isSelected) {
-        if (stack.getOrCreateTag().getBoolean("active")) {
-            int r = (CrimsonMagnet.CONFIGURATION.magnetRange.get());
-            AxisAlignedBB area = new AxisAlignedBB(entityIn.getPositionVec().add(-r, -r, -r), entityIn.getPositionVec().add(r, r, r));
+        if (entityIn.ticksExisted%20 == 0) {
+            //CrimsonMagnet.LOGGER.info("Magnet Ticking");
 
-            List<ItemEntity> items = worldIn.getEntitiesWithinAABB(EntityType.ITEM, area, item -> !item.getPersistentData().contains("PreventRemoteMovement"));
-            items.forEach(item -> item.setPosition(entityIn.getPosX(), entityIn.getPosY(), entityIn.getPosZ()));
+            if (stack.getOrCreateTag().getBoolean("active")) {
+                int r = (CrimsonMagnet.CONFIGURATION.magnetRange.get());
+                AxisAlignedBB area = new AxisAlignedBB(entityIn.getPositionVec().add(-r, -r, -r), entityIn.getPositionVec().add(r, r, r));
 
-            if (!worldIn.isRemote && entityIn instanceof PlayerEntity) {
-                if (CrimsonMagnet.CONFIGURATION.magnetCollectXP.get()) {
-                    PlayerEntity player = (PlayerEntity) entityIn;
-                    List<ExperienceOrbEntity> orbs = worldIn.getEntitiesWithinAABB(ExperienceOrbEntity.class, area);
-                    orbs.forEach(orb -> {
-                        orb.delayBeforeCanPickup = 0;
-                        player.xpCooldown = 0;
-                        orb.onCollideWithPlayer(player);
-                    });
+                List<ItemEntity> items = worldIn.getEntitiesWithinAABB(EntityType.ITEM, area, item -> !item.getPersistentData().contains("PreventRemoteMovement"));
+                items.forEach(item -> item.setPosition(entityIn.getPosX(), entityIn.getPosY(), entityIn.getPosZ()));
+
+                if (!worldIn.isRemote && entityIn instanceof PlayerEntity) {
+                    if (CrimsonMagnet.CONFIGURATION.magnetCollectXP.get()) {
+                        PlayerEntity player = (PlayerEntity) entityIn;
+                        List<ExperienceOrbEntity> orbs = worldIn.getEntitiesWithinAABB(ExperienceOrbEntity.class, area);
+
+                        orbs.forEach(orb -> {
+                            orb.delayBeforeCanPickup = 0;
+                            player.xpCooldown = 0;
+                            orb.onCollideWithPlayer(player);
+                        });
+                    }
                 }
             }
         }

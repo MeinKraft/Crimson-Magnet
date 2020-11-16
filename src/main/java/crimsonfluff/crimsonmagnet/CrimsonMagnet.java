@@ -20,7 +20,6 @@ public class CrimsonMagnet {
     public static final ConfigBuilder CONFIGURATION = new ConfigBuilder();
 
     public CrimsonMagnet() {
-        //CONFIGURATION = new ConfigBuilder();
         MOD_EVENTBUS.addListener(this::setup);
         MOD_EVENTBUS.addListener(this::doClientStuff);
 
@@ -33,6 +32,4 @@ public class CrimsonMagnet {
 
     private void setup(final FMLClientSetupEvent event) { }
     private void doClientStuff(final FMLClientSetupEvent event) { }
-
-    //public ConfigBuilder getConfig() { return CONFIGURATION; }
 }
