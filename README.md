@@ -1,4 +1,4 @@
-# CrimsonMagnet
+# Crimson-Magnet
  
 My Third Public Mod
 
