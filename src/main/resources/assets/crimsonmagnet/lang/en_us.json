@@ -1,5 +1,9 @@
 {
-  "tip.crimsonmagnet.item": "A simple magnet for attracting items and xp orbs",
+  "curios.identifier.magnet": "Magnet Slot",
   "item.crimsonmagnet.magnet": "Crimson Magnet",
-  "curios.identifier.magnet": "Magnet Slot"
+  "item.crimsonmagnet.xp_bucket": "Liquid XP Bucket",
+  "block.crimsonmagnet.magnet_block": "Magnet Block",
+  "tip.crimsonmagnet.item": "A magnet for attracting items and xp orbs",
+  "tip.crimsonmagnet.magnet_block": "A magnet block for attracting items and xp orbs",
+  "fluid.crimsonmagnet.xp_fluid": "Liquid XP"
 }

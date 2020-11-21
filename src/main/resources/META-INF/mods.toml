@@ -8,6 +8,7 @@ modId="crimsonmagnet"
 version="${version}"
 displayName="Crimson Magnet"
 displayURL="http://crimsonfluff.com/"
+updateJSONURL="https://github.com/MeinKraft/Crimson-Magnet/raw/main/update.json"
 authors="§4Crimson_Fluff"
 logoFile="logo.png" #optional
 credits="\n§bRaziel23x§r for casually giving me the push I needed !\n§bTechnovision§r for his awesome modding YouTube series\n§bTurtyWurty§r for his awesome modding YouTube series" #optional

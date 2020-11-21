@@ -1,6 +1,9 @@
 package crimsonfluff.crimsonmagnet;
 
+import crimsonfluff.crimsonmagnet.init.blocksInit;
+import crimsonfluff.crimsonmagnet.init.fluidsInit;
 import crimsonfluff.crimsonmagnet.init.itemsInit;
+import crimsonfluff.crimsonmagnet.init.tilesInit;
 import net.minecraft.inventory.container.PlayerContainer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
@@ -18,7 +21,7 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import top.theillusivec4.curios.api.SlotTypeMessage;
-
+import top.theillusivec4.curios.api.SlotTypePreset;
 
 @Mod("crimsonmagnet")
 public class CrimsonMagnet {
@@ -34,24 +37,29 @@ public class CrimsonMagnet {
         MOD_EVENTBUS.addListener(this::enqueueIMC);
 
         ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, CONFIGURATION.CLIENT);
+//        ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, CONFIGURATION.CLIENT);
 
+        tilesInit.TILES.register(MOD_EVENTBUS);
+        fluidsInit.FLUIDS.register(MOD_EVENTBUS);
+        blocksInit.BLOCKS.register(MOD_EVENTBUS);
         itemsInit.ITEMS.register(MOD_EVENTBUS);
 
         MinecraftForge.EVENT_BUS.register(this);
     }
 
     private void setup(final FMLClientSetupEvent event) { }
-
     private void doClientStuff(final FMLClientSetupEvent event) { }
 
     private void enqueueIMC(final InterModEnqueueEvent event) {
         if (Curios.isModLoaded()) {
-            InterModComms.sendTo("curios", SlotTypeMessage.REGISTER_TYPE,
+            if (!SlotTypePreset.findPreset("magnet").isPresent()) {
+                InterModComms.sendTo("curios", SlotTypeMessage.REGISTER_TYPE,
                     () -> new SlotTypeMessage
-                            .Builder("magnet")
-                            .size(1)
-                            .icon(new ResourceLocation(CrimsonMagnet.MOD_ID, "item/empty_magnet_slot"))
-                            .build());
+                        .Builder("magnet")
+                        .size(1)
+                        .icon(new ResourceLocation(CrimsonMagnet.MOD_ID, "item/empty_magnet_slot"))
+                        .build());
+            }
         }
     }
 
@@ -59,9 +67,9 @@ public class CrimsonMagnet {
     public static class ClientProxy {
         @SubscribeEvent
         public static void stitchTextures(TextureStitchEvent.Pre event) {
-            if (event.getMap().getTextureLocation().equals(PlayerContainer.LOCATION_BLOCKS_TEXTURE)) {
+            if (event.getMap().getTextureLocation().equals(PlayerContainer.LOCATION_BLOCKS_TEXTURE))
                 event.addSprite(new ResourceLocation(CrimsonMagnet.MOD_ID, "item/empty_magnet_slot"));
-            }
+
         }
     }
 }

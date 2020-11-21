@@ -8,11 +8,11 @@ import org.apache.commons.lang3.tuple.ImmutableTriple;
 import top.theillusivec4.curios.api.CuriosApi;
 
 public class Curios {
-    public static ItemStack findCurioItem(Item item, LivingEntity living) {
-        return CuriosApi.getCuriosHelper().findEquippedCurio(item, living)
+    public static ItemStack findItem(Item item, LivingEntity entity) {
+        return CuriosApi.getCuriosHelper().findEquippedCurio(item, entity)
                 .map(ImmutableTriple::getRight)
                 .orElse(ItemStack.EMPTY);
     }
 
-    public static boolean isModLoaded() { return (ModList.get() != null && ModList.get().getModContainerById("curios").isPresent()); }
+    public static boolean isModLoaded() { return (ModList.get().getModContainerById("curios").isPresent()); }
 }

@@ -26,10 +26,12 @@ import java.util.List;
 public class ItemMagnet extends Item {
     public ItemMagnet() { super(new Item.Properties().group(ItemGroup.MISC).maxStackSize(1)); }
 
+    private int tick=0;
+
     @OnlyIn(Dist.CLIENT)
     @Override
     public void addInformation(ItemStack stack, World worldIn, List<ITextComponent> tooltip, ITooltipFlag flagIn) {
-        tooltip.add((new TranslationTextComponent("tip." + CrimsonMagnet.MOD_ID + ".item").mergeStyle(TextFormatting.GRAY)));
+        tooltip.add((new TranslationTextComponent("tip." + CrimsonMagnet.MOD_ID + ".item").mergeStyle(TextFormatting.GREEN)));
 
         String isXPCS;
         if (CrimsonMagnet.CONFIGURATION.magnetCollectXP.get())
@@ -37,8 +39,8 @@ public class ItemMagnet extends Item {
         else
             isXPCS = "Disabled";
 
-        tooltip.add(new StringTextComponent("Range is " + CrimsonMagnet.CONFIGURATION.magnetRange.get() + " blocks").mergeStyle(TextFormatting.YELLOW));
-        tooltip.add(new StringTextComponent("XP Collection is " + isXPCS).mergeStyle(TextFormatting.YELLOW));
+        tooltip.add(new StringTextComponent("Range is " + CrimsonMagnet.CONFIGURATION.magnetRange.get() + " blocks").mergeStyle(TextFormatting.AQUA));
+        tooltip.add(new StringTextComponent("XP Collection is " + isXPCS).mergeStyle(TextFormatting.AQUA));
 
         super.addInformation(stack, worldIn, tooltip, flagIn);
     }
@@ -56,9 +58,8 @@ public class ItemMagnet extends Item {
 
         stack.getOrCreateTag().putBoolean("active", active);
 
-        if (active) fPitch = 0.9f;
-        else fPitch = 0.01f;
-        playerIn.world.playSound(null, playerIn.getPosX(), playerIn.getPosY(), playerIn.getPosZ(), SoundEvents.BLOCK_NOTE_BLOCK_BELL, SoundCategory.PLAYERS, 1f, fPitch);
+        fPitch = (active) ? 0.9f : 0.01f;
+        playerIn.world.playSound(null, playerIn.getPosition(), SoundEvents.BLOCK_NOTE_BLOCK_BELL, SoundCategory.PLAYERS, 1f, fPitch);
 
         return new ActionResult<>(ActionResultType.SUCCESS, stack);
     }
@@ -69,7 +70,9 @@ public class ItemMagnet extends Item {
 
     @Override
     public void inventoryTick(ItemStack stack, World worldIn, Entity entityIn, int itemSlot, boolean isSelected) {
-        if (entityIn.ticksExisted%20 == 0) {
+        tick++;
+        if (tick==20) {
+            tick=0;
             //CrimsonMagnet.LOGGER.info("Magnet Ticking");
 
             if (stack.getOrCreateTag().getBoolean("active")) {
@@ -77,7 +80,11 @@ public class ItemMagnet extends Item {
                 AxisAlignedBB area = new AxisAlignedBB(entityIn.getPositionVec().add(-r, -r, -r), entityIn.getPositionVec().add(r, r, r));
 
                 List<ItemEntity> items = worldIn.getEntitiesWithinAABB(EntityType.ITEM, area, item -> !item.getPersistentData().contains("PreventRemoteMovement"));
-                items.forEach(item -> item.setPosition(entityIn.getPosX(), entityIn.getPosY(), entityIn.getPosZ()));
+                items.forEach(item -> {
+                    //item.remove();
+                    item.setNoPickupDelay();
+                    item.setPosition(entityIn.getPosX(), entityIn.getPosY(), entityIn.getPosZ());
+                    });
 
                 if (!worldIn.isRemote && entityIn instanceof PlayerEntity) {
                     if (CrimsonMagnet.CONFIGURATION.magnetCollectXP.get()) {
