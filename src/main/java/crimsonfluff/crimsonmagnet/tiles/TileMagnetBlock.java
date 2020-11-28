@@ -7,6 +7,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.item.ExperienceOrbEntity;
 import net.minecraft.entity.item.ItemEntity;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.tileentity.TileEntity;
@@ -35,14 +36,18 @@ public class TileMagnetBlock extends TileEntity implements ITickableTileEntity {
             return stack.getFluid() == fluidsInit.XP_FLUID.get();
         }
     };
+    protected ItemStackHandler itemHandler = new ItemStackHandler() {
+        @Override
+        public boolean isItemValid(int slot, @Nonnull ItemStack stack) {return false;}
+    };
 
-    private ItemStackHandler itemHandler;
+//    private ItemStackHandler itemHandler;
     private final LazyOptional<IFluidHandler> fluidHandler = LazyOptional.of(() -> tank);
 
     public TileMagnetBlock() {
         super(tilesInit.MAGNET_BLOCK_TILE.get());
     }
-
+    // public FluidTank getTank() { return this.tank; }
     private int ticks = 0;
 
     @Override
@@ -81,10 +86,13 @@ public class TileMagnetBlock extends TileEntity implements ITickableTileEntity {
 
 // if we still have items in the list then add to any empty slots available
                     for (ItemEntity itemIE : items) {
-                        for (int a = 0; a < this.itemHandler.getSlots(); a++) {
-                            if (this.itemHandler.getStackInSlot(a).isEmpty()) {
-                                if (!itemIE.getItem().isEmpty()) {
-                                    this.itemHandler.insertItem(a, itemIE.getItem(), false);
+                        if (!itemIE.getItem().isEmpty()) {
+                            for (int a = 0; a < this.itemHandler.getSlots(); a++) {
+                                if (this.itemHandler.getStackInSlot(a).isEmpty()) {
+                                    // cant use insertItem because it validates if magnet block can accept items
+                                    // which we set to false (isValidItem return false) so that outside mods cant pump items into the magnet block
+                                    //this.itemHandler.insertItem(a, itemIE.getItem(), false);
+                                    this.itemHandler.setStackInSlot(a, itemIE.getItem());
                                     itemIE.remove();
 
                                     break;
@@ -98,7 +106,7 @@ public class TileMagnetBlock extends TileEntity implements ITickableTileEntity {
                     for (ItemEntity itemIE : items) {
                         if (!itemIE.getItem().isEmpty()) {
                             if (CrimsonMagnet.CONFIGURATION.magnetBlockVoid.get()) {
-                                CrimsonMagnet.LOGGER.info("VOID Active");
+                                //CrimsonMagnet.LOGGER.info("VOID Active");
                                 itemIE.remove();
                             } else
                                 itemIE.setPosition(x + 0.5, y + 1, z + 0.5);
@@ -151,10 +159,6 @@ public class TileMagnetBlock extends TileEntity implements ITickableTileEntity {
         if (cap == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY) return fluidHandler.cast();
 
         return super.getCapability(cap, side);
-    }
-
-    public FluidTank getTank() {
-        return this.tank;
     }
 
     @Override
