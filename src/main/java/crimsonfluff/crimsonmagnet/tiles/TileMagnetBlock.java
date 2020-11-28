@@ -113,25 +113,24 @@ public class TileMagnetBlock extends TileEntity implements ITickableTileEntity {
 
                         }
                     }
-
+                }
 // Handle the XP
-                    if (CrimsonMagnet.CONFIGURATION.magnetBlockCollectXP.get()) {
-                        List<ExperienceOrbEntity> orbs = world.getEntitiesWithinAABB(ExperienceOrbEntity.class, area);
+                if (CrimsonMagnet.CONFIGURATION.magnetBlockCollectXP.get()) {
+                    List<ExperienceOrbEntity> orbs = world.getEntitiesWithinAABB(ExperienceOrbEntity.class, area);
 
-                        if (orbs.size() != 0) {
-                            world.playSound(null, x, y, z, SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, SoundCategory.PLAYERS, 1f, 1f);
+                    if (orbs.size() != 0) {
+                        world.playSound(null, x, y, z, SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, SoundCategory.PLAYERS, 1f, 1f);
 
-                            for (ExperienceOrbEntity orb : orbs) {
-                                if (orb.getXpValue() <= (this.tank.getCapacity() - this.tank.getFluidAmount())) {
-                                    this.tank.fill(new FluidStack(fluidsInit.XP_FLUID.get(), orb.getXpValue()), IFluidHandler.FluidAction.EXECUTE);
+                        for (ExperienceOrbEntity orb : orbs) {
+                            if (orb.getXpValue() <= (this.tank.getCapacity() - this.tank.getFluidAmount())) {
+                                this.tank.fill(new FluidStack(fluidsInit.XP_FLUID.get(), orb.getXpValue()), IFluidHandler.FluidAction.EXECUTE);
+                                orb.remove();
+
+                            } else {
+                                if (CrimsonMagnet.CONFIGURATION.magnetBlockVoid.get())
                                     orb.remove();
-
-                                } else {
-                                    if (CrimsonMagnet.CONFIGURATION.magnetBlockVoid.get())
-                                        orb.remove();
-                                    else
-                                        orb.setPosition(x + 0.5, y + 1, z + 0.5);
-                                }
+                                else
+                                    orb.setPosition(x + 0.5, y + 1, z + 0.5);
                             }
                         }
                     }

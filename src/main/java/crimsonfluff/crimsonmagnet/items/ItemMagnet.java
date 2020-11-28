@@ -2,12 +2,14 @@ package crimsonfluff.crimsonmagnet.items;
 
 import crimsonfluff.crimsonmagnet.CrimsonMagnet;
 
+import crimsonfluff.crimsonmagnet.init.fluidsInit;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.item.ExperienceOrbEntity;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
@@ -20,6 +22,8 @@ import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.capability.IFluidHandler;
 
 import java.util.List;
 
@@ -71,31 +75,82 @@ public class ItemMagnet extends Item {
     @Override
     public void inventoryTick(ItemStack stack, World worldIn, Entity entityIn, int itemSlot, boolean isSelected) {
         tick++;
-        if (tick==20) {
-            tick=0;
-            //CrimsonMagnet.LOGGER.info("Magnet Ticking");
+        if (tick == 20) {
+            tick = 0;
 
-            if (stack.getOrCreateTag().getBoolean("active")) {
-                int r = (CrimsonMagnet.CONFIGURATION.magnetRange.get());
-                AxisAlignedBB area = new AxisAlignedBB(entityIn.getPositionVec().add(-r, -r, -r), entityIn.getPositionVec().add(r, r, r));
+            if (!worldIn.isRemote) {
+                if (stack.getOrCreateTag().getBoolean("active")) {
+                    double x = entityIn.getPosX();
+                    double y = entityIn.getPosY();
+                    double z = entityIn.getPosZ();
 
-                List<ItemEntity> items = worldIn.getEntitiesWithinAABB(EntityType.ITEM, area, item -> !item.getPersistentData().contains("PreventRemoteMovement"));
-                items.forEach(item -> {
-                    //item.remove();
-                    item.setNoPickupDelay();
-                    item.setPosition(entityIn.getPosX(), entityIn.getPosY(), entityIn.getPosZ());
-                    });
+                    PlayerEntity playerIn = (PlayerEntity) entityIn;
+                    PlayerInventory inv = playerIn.inventory;
 
-                if (!worldIn.isRemote && entityIn instanceof PlayerEntity) {
-                    if (CrimsonMagnet.CONFIGURATION.magnetCollectXP.get()) {
-                        PlayerEntity player = (PlayerEntity) entityIn;
+                    int r = (CrimsonMagnet.CONFIGURATION.magnetBlockRange.get());
+                    AxisAlignedBB area = new AxisAlignedBB(x - r, y - r, z - r, x + r, y + r, z + r);
+                    List<ItemEntity> items = worldIn.getEntitiesWithinAABB(EntityType.ITEM, area, item -> !item.getPersistentData().contains("PreventRemoteMovement"));
+
+                    int isSpace = 0;
+
+                    if (items.size() != 0) {
+// try to merge items found with existing items already in Player inventory
+                        for (ItemEntity itemIE : items) {
+                            for (int a = 0; a < inv.getSizeInventory(); a++) {
+                                // dont include slots 36,37,38,39 which are boots, leggings, chestplate, helmet
+                                if ((a <= 35) || (a >= 40)) {
+                                    if (inv.getStackInSlot(a).isItemEqual(itemIE.getItem())) {
+                                        isSpace = inv.getStackInSlot(a).getMaxStackSize() - inv.getStackInSlot(a).getCount();
+
+                                        if (isSpace != 0) {
+                                            isSpace = Math.min(isSpace, itemIE.getItem().getCount());
+                                            inv.getStackInSlot(a).grow(isSpace);
+                                            itemIE.getItem().shrink(isSpace);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+// if we still have items in the list then add to any empty slots available
+                        for (ItemEntity itemIE : items) {
+                            if (!itemIE.getItem().isEmpty()) {
+                                for (int a = 0; a < inv.getSizeInventory(); a++) {
+                                    // dont include slots 36,37,38,39 which are boots, leggings, chestplate, helmet
+                                    if ((a <= 35) || (a >= 40)) {
+                                        if (inv.getStackInSlot(a).isEmpty()) {
+                                            inv.setInventorySlotContents(a, itemIE.getItem());
+
+                                            itemIE.remove();
+
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+// if we still have items in the list then move them to player feet position
+// or void them ?
+                        for (ItemEntity itemIE : items) {
+                            if (!itemIE.getItem().isEmpty()) {
+                                itemIE.setPosition(x + 0.5, y , z + 0.5);
+                            }
+                        }
+                    }
+
+// Handle the XP
+                    if (CrimsonMagnet.CONFIGURATION.magnetBlockCollectXP.get()) {
                         List<ExperienceOrbEntity> orbs = worldIn.getEntitiesWithinAABB(ExperienceOrbEntity.class, area);
 
-                        orbs.forEach(orb -> {
-                            orb.delayBeforeCanPickup = 0;
-                            player.xpCooldown = 0;
-                            orb.onCollideWithPlayer(player);
-                        });
+                        if (orbs.size() != 0) {
+                            worldIn.playSound(null, x, y, z, SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, SoundCategory.PLAYERS, 1f, 1f);
+
+                            for (ExperienceOrbEntity orb : orbs) {
+                                playerIn.giveExperiencePoints(orb.getXpValue());
+                                orb.remove();
+                            }
+                        }
                     }
                 }
             }
