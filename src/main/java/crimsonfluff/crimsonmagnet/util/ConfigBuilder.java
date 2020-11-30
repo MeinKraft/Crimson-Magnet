@@ -1,8 +1,7 @@
-package crimsonfluff.crimsonmagnet;
+package crimsonfluff.crimsonmagnet.util;
 import net.minecraftforge.common.ForgeConfigSpec;
 
 public class ConfigBuilder {
-    //public final ForgeConfigSpec CLIENT;
     public final ForgeConfigSpec CLIENT;
 
     public ForgeConfigSpec.IntValue magnetRange;
@@ -10,7 +9,7 @@ public class ConfigBuilder {
     public ForgeConfigSpec.BooleanValue magnetCollectXP;
     public ForgeConfigSpec.BooleanValue magnetBlockCollectXP;
     public ForgeConfigSpec.BooleanValue magnetBlockVoid;
-    public ForgeConfigSpec.BooleanValue magnetBlockCollectXPSound;
+    public ForgeConfigSpec.BooleanValue magnetBlockCollectSound;
     public ForgeConfigSpec.BooleanValue magnetShowParticles;
     public ForgeConfigSpec.BooleanValue magnetBlockShowParticles;
 
@@ -20,35 +19,39 @@ public class ConfigBuilder {
         builder.push("Magnet Settings");
 
         magnetRange = builder
-            .comment("What should the range of the Magnet be ?")
+            .comment("What should the range of the Magnet be ?  Default: 16")
             .defineInRange("Range", 16, 5, 48);
 
         magnetCollectXP = builder
-                .comment("Should the Magnet collect XP Orbs ?")
+                .comment("Collect XP Orbs ?  Default: true")
                 .define("CollectXP", true);
 
         magnetShowParticles = builder
-                .comment("Should the Magnet show particle effects ?")
+                .comment("Show particle effects ?  Default: true")
                 .define("MagnetShowParticles", true);
 
+        builder.pop();
+
+
+        builder.push("Magnet Block Settings");
         magnetBlockRange = builder
-                .comment("What should the range of the Magnet Block be ?")
+                .comment("What should the range be ?  Default: 16")
                 .defineInRange("BlockRange", 16, 16, 48);
 
         magnetBlockCollectXP = builder
-                .comment("Should the Magnet Block collect XP Orbs ?")
+                .comment("Collect XP Orbs ?  Default: true")
                 .define("BlockCollectXP", true);
 
         magnetBlockVoid = builder
-                .comment("Should the Magnet Block Void Items/XP when full ?")
+                .comment("Void Items/XP when full ?  Default: true")
                 .define("BlockVoidCollect", true);
 
-        magnetBlockCollectXPSound = builder
-                .comment("Should the Magnet Block play sound when collecting XP ?")
-                .define("BlockCollectXPSound", true);
+        magnetBlockCollectSound = builder
+                .comment("Play sound when collecting Items/XP ?  Default: true")
+                .define("BlockCollectSound", true);
 
         magnetBlockShowParticles = builder
-                .comment("Should the Magnet Block show particle effects ?")
+                .comment("Show particle effects ?  Default: true")
                 .define("BlockShowParticles", true);
 
         builder.pop();

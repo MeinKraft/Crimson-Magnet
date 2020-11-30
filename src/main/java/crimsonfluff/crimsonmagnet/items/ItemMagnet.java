@@ -1,8 +1,6 @@
 package crimsonfluff.crimsonmagnet.items;
 
 import crimsonfluff.crimsonmagnet.CrimsonMagnet;
-
-import crimsonfluff.crimsonmagnet.init.fluidsInit;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
@@ -22,13 +20,11 @@ import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
 
 import java.util.List;
 
 public class ItemMagnet extends Item {
-    public ItemMagnet() { super(new Item.Properties().group(ItemGroup.MISC).maxStackSize(1)); }
+    public ItemMagnet() { super(new Properties().group(ItemGroup.MISC).maxStackSize(1)); }
 
     private int tick=0;
 
@@ -92,6 +88,7 @@ public class ItemMagnet extends Item {
                     List<ItemEntity> items = worldIn.getEntitiesWithinAABB(EntityType.ITEM, area, item -> !item.getPersistentData().contains("PreventRemoteMovement"));
 
                     int isSpace = 0;
+                    boolean isSound = false;
 
                     if (items.size() != 0) {
 // try to merge items found with existing items already in Player inventory
@@ -106,6 +103,7 @@ public class ItemMagnet extends Item {
                                             isSpace = Math.min(isSpace, itemIE.getItem().getCount());
                                             inv.getStackInSlot(a).grow(isSpace);
                                             itemIE.getItem().shrink(isSpace);
+                                            isSound=true;
                                         }
                                     }
                                 }
@@ -122,6 +120,7 @@ public class ItemMagnet extends Item {
                                             inv.setInventorySlotContents(a, itemIE.getItem());
 
                                             itemIE.remove();
+                                            isSound=true;
 
                                             break;
                                         }
@@ -129,6 +128,8 @@ public class ItemMagnet extends Item {
                                 }
                             }
                         }
+
+                        if (isSound) worldIn.playSound(null, x, y, z, SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.PLAYERS, 1f, 1.6f);
 
 // if we still have items in the list then move them to player feet position
 // or void them ?

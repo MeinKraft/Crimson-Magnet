@@ -1,4 +1,4 @@
-package crimsonfluff.crimsonmagnet;
+package crimsonfluff.crimsonmagnet.util;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.util.InputMappings;

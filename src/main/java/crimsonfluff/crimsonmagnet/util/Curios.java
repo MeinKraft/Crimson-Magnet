@@ -1,4 +1,4 @@
-package crimsonfluff.crimsonmagnet;
+package crimsonfluff.crimsonmagnet.util;
 
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.Item;

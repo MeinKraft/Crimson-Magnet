@@ -6,13 +6,12 @@ issueTrackerURL="http://my.issue.tracker/" #optional
 [[mods]]
 modId="crimsonmagnet"
 version="${version}"
-displayName="Crimson Magnet"
+displayName="CrimsonMagnet"
 displayURL="http://crimsonfluff.com/"
-updateJSONURL="https://github.com/MeinKraft/Crimson-Magnet/raw/main/update.json"
 authors="§4Crimson_Fluff"
 logoFile="logo.png" #optional
 credits="\n§bRaziel23x§r for casually giving me the push I needed !\n§bTechnovision§r for his awesome modding YouTube series\n§bTurtyWurty§r for his awesome modding YouTube series" #optional
-description=''' This is my first attempt at basic Minecraft 1.16.4 modding  '''
+description=''' This is my first attempt at basic Minecraft 1.16.3 modding  '''
 
 [[dependencies.crimsonmagnet]]
     modId="minecraft"
