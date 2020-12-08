@@ -1,11 +1,13 @@
 package crimsonfluff.crimsonmagnet.containers;
 
+import crimsonfluff.crimsonmagnet.CrimsonMagnet;
 import crimsonfluff.crimsonmagnet.GenericChestTypes;
 import crimsonfluff.crimsonmagnet.init.containersInit;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Inventory;
+import net.minecraft.inventory.container.ClickType;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.ContainerType;
 import net.minecraft.inventory.container.Slot;
@@ -59,27 +61,26 @@ public class ChestContainer extends Container {
         return this.inventory.isUsableByPlayer(playerIn);
     }
 
-/*    @Override
-    public void putStackInSlot(int slotID, ItemStack stack) {
-        CrimsonChest.LOGGER.info("SLOT"+slotID);
-        if (slotID>=9) this.getSlot(slotID).putStack(stack);
-    }*/
 
-    // dont allow dragging items into inventory
+    // dont allow dragging items into Magnet.Inventory
     @Override
     public boolean canDragIntoSlot(Slot slotIn) {
         return slotIn.getSlotIndex() >= this.getInventory().size();
     }
 
+    // if Shift-Clicking
+    // Slot.slotNumber is where the stack *will* end up (Its destination slot number)
     @Override
     public ItemStack transferStackInSlot(PlayerEntity playerIn, int index) {
         ItemStack itemstack = ItemStack.EMPTY;
         Slot slot = this.inventorySlots.get(index);
+        //CrimsonMagnet.LOGGER.info("SLOT"+slot.slotNumber);
 
         if (slot != null && slot.getHasStack()) {
             ItemStack itemstack1 = slot.getStack();
             itemstack = itemstack1.copy();
 
+            // if Shift Clicked into player Inventory (0-36,37,38,39,40) Feet/Legs/Chest/Helmet
             if (index < this.chestType.size) {
                 if (!this.mergeItemStack(itemstack1, this.chestType.size, this.inventorySlots.size(), true)) {
                     return ItemStack.EMPTY;

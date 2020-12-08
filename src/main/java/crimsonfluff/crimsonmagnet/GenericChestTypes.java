@@ -4,7 +4,6 @@ import net.minecraft.util.IStringSerializable;
 import net.minecraft.util.ResourceLocation;
 
 import javax.annotation.Nullable;
-import java.util.Locale;
 
 public enum GenericChestTypes implements IStringSerializable {
     MAGNET("Magnet", 1, 9, 176, 130, 8, 18, 8, 48, new ResourceLocation(CrimsonMagnet.MOD_ID, "textures/gui/crimson_chest.png"), 256, 256);

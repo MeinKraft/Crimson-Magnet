@@ -1,14 +1,13 @@
 package crimsonfluff.crimsonmagnet.blocks;
 
-import crimsonfluff.crimsonmagnet.GenericChestTypes;
-import crimsonfluff.crimsonmagnet.init.tilesInit;
-import crimsonfluff.crimsonmagnet.tiles.ChestTileEntity;
 import crimsonfluff.crimsonmagnet.tiles.MagnetBlockTileEntity;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.inventory.IInventory;
+import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.INamedContainerProvider;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ActionResultType;
@@ -51,6 +50,16 @@ public class BlockMagnet extends Block {
 
         }
         return ActionResultType.SUCCESS;
+    }
+
+    @Override
+    public boolean hasComparatorInputOverride(BlockState state) {
+        return true;
+    }
+
+    @Override
+    public int getComparatorInputOverride(BlockState blockState, World worldIn, BlockPos pos) {
+        return Container.calcRedstoneFromInventory((IInventory) worldIn.getTileEntity(pos));
     }
 
     @Override
