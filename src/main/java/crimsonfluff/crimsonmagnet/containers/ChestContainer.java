@@ -1,13 +1,11 @@
 package crimsonfluff.crimsonmagnet.containers;
 
-import crimsonfluff.crimsonmagnet.CrimsonMagnet;
 import crimsonfluff.crimsonmagnet.GenericChestTypes;
 import crimsonfluff.crimsonmagnet.init.containersInit;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Inventory;
-import net.minecraft.inventory.container.ClickType;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.ContainerType;
 import net.minecraft.inventory.container.Slot;

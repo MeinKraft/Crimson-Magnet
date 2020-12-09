@@ -34,7 +34,6 @@ public class CrimsonMagnet {
     public CrimsonMagnet() {
         MOD_EVENTBUS.addListener(this::doClientStuff);
         MOD_EVENTBUS.addListener(this::enqueueIMC);
-        MOD_EVENTBUS.addListener(this::setup);
 
         ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, CONFIGURATION.CLIENT);
         tilesInit.TILES.register(MOD_EVENTBUS);
@@ -51,17 +50,15 @@ public class CrimsonMagnet {
 		ScreenManager.registerFactory(containersInit.GENERIC_CHEST.get(), GenericChestScreen::new);
 	}
 
-	private void setup(final FMLClientSetupEvent event) { }
-
     private void enqueueIMC(final InterModEnqueueEvent event) {
         if (Curios.isModLoaded()) {
             if (!SlotTypePreset.findPreset("magnet").isPresent()) {
                 InterModComms.sendTo("curios", SlotTypeMessage.REGISTER_TYPE,
-                        () -> new SlotTypeMessage
-                                .Builder("magnet")
-                                .size(1)
-                                .icon(new ResourceLocation(CrimsonMagnet.MOD_ID, "item/empty_magnet_slot"))
-                                .build());
+                    () -> new SlotTypeMessage
+                        .Builder("magnet")
+                        .size(1)
+                        .icon(new ResourceLocation(CrimsonMagnet.MOD_ID, "item/empty_magnet_slot"))
+                        .build());
             }
         }
     }
@@ -72,7 +69,6 @@ public class CrimsonMagnet {
         public static void stitchTextures(TextureStitchEvent.Pre event) {
             if (event.getMap().getTextureLocation().equals(PlayerContainer.LOCATION_BLOCKS_TEXTURE))
                 event.addSprite(new ResourceLocation(CrimsonMagnet.MOD_ID, "item/empty_magnet_slot"));
-
         }
     }
 }

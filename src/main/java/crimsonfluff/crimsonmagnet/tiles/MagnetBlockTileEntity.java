@@ -42,37 +42,34 @@ public class MagnetBlockTileEntity extends ChestTileEntity {
 
     private int ticks=0;
 
-    //BlockPos converts to integer, so either center on the block its found on or store x/y/z independently
+    //BlockPos is integer, so either center on the block its found on or store x/y/z independently
     //private ArrayList<BlockPos> particlePos = new ArrayList<BlockPos>();
     // MUST be static or wont work, tried this.particlePosX.size()
-    private static ArrayList<Double> particlePosX = new ArrayList<Double>();
-    private static ArrayList<Double> particlePosY = new ArrayList<Double>();
-    private static ArrayList<Double> particlePosZ = new ArrayList<Double>();
+    private static ArrayList<Double> particlePosX = new ArrayList<>();
+    private static ArrayList<Double> particlePosY = new ArrayList<>();
+    private static ArrayList<Double> particlePosZ = new ArrayList<>();
 
     @Override
     public void tick() {
         if (world.isRemote) {
-            //CrimsonMagnet.LOGGER.info("STAGE ONE");
             if (particlePosX.size() != 0) {
-                //CrimsonMagnet.LOGGER.info("STAGE TWO");
-
-                for (int a=0; a<particlePosX.size(); a++) {
+                for (int a=0; a<particlePosX.size(); a++)
                     world.addParticle(ParticleTypes.CLOUD, particlePosX.get(a), particlePosY.get(a), particlePosZ.get(a), 0.0D, 0.0D, 0.0D);
-                    //worldIn.addParticle(ParticleTypes.CLOUD, particlePosX.get(a), particlePosY.get(a), particlePosZ.get(a), 0.0D, 0.0D, 0.0D);
-                }
 
-                particlePosX.clear();
-                particlePosY.clear();
-                particlePosZ.clear();
+                    particlePosX.clear();
+                    particlePosY.clear();
+                    particlePosZ.clear();
                 return;
             }
         }
 
-        ticks++;
-        if (ticks==20) {
-            ticks=0;
+        // NOTE: Put isRemote before Ticks
+        if (!world.isRemote()) {
+            ticks++;
 
-            if (!world.isRemote()) {
+            if (ticks==20) {
+                ticks=0;
+
                 int x = this.getPos().getX();
                 int y = this.getPos().getY();
                 int z = this.getPos().getZ();
@@ -112,22 +109,17 @@ public class MagnetBlockTileEntity extends ChestTileEntity {
 
                 List<ItemEntity> items = world.getEntitiesWithinAABB(EntityType.ITEM, area, item -> !item.getPersistentData().contains("PreventRemoteMovement"));
 
-                int isSpace = 0;
-                boolean isSound = false;
-
-                //CrimsonMagnet.LOGGER.info("MAGNET: Ticking");
+                int isSpace;
 
                 if (items.size() != 0) {
-// try to merge items found with existing items already in Player inventory
-                    for (ItemEntity itemIE : items) {
-                        if (CrimsonMagnet.CONFIGURATION.magnetBlockShowParticles.get()) {
-                            particlePosX.add(itemIE.getPosX());
-                            particlePosY.add(itemIE.getPosY());
-                            particlePosZ.add(itemIE.getPosZ());
-                        }
+                    // if the picked-up-item IS already on top of the MagnetBlock, remove from list and ignore it
+                    // NOTE: if you throw an item on top of the MagnetBlock chances are it gets ignored because of this
+                    items.removeIf(itemIE -> world.getTileEntity(itemIE.getPosition().offset(Direction.DOWN)) instanceof MagnetBlockTileEntity);
 
+                    // try to merge items found with existing items already in Player inventory
+                    for (ItemEntity itemIE : items) {
                         for (int a = 0; a < this.getSizeInventory(); a++) {
-                            // dont include slots 36,37,38,39 which are boots, leggings, chestplate, helmet
+                            // don't include slots 36,37,38,39 which are boots, leggings, chestplate, helmet
                             if ((a <= 35) || (a >= 40)) {
                                 if (this.getStackInSlot(a).getItem() == itemIE.getItem().getItem()) {
                                     isSpace = this.getStackInSlot(a).getMaxStackSize() - this.getStackInSlot(a).getCount();
@@ -136,7 +128,6 @@ public class MagnetBlockTileEntity extends ChestTileEntity {
                                         isSpace = Math.min(isSpace, itemIE.getItem().getCount());
                                         this.getStackInSlot(a).grow(isSpace);
                                         itemIE.getItem().shrink(isSpace);
-                                        isSound = true;
 
                                         if (itemIE.getItem().getCount() == 0) {
                                             break;
@@ -145,19 +136,28 @@ public class MagnetBlockTileEntity extends ChestTileEntity {
                                 }
                             }
                         }
+
+                        if (CrimsonMagnet.CONFIGURATION.magnetBlockShowParticles.get()) {
+                            particlePosX.add(itemIE.getPosX());
+                            particlePosY.add(itemIE.getPosY());
+                            particlePosZ.add(itemIE.getPosZ());
+                        }
+
+                        // Only play sound if items have actually moved
+                        // NOTE: items on-top of MagnetBlock would continually cause sound and particles
+                        world.playSound(null, x, y, z, SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.PLAYERS, 1f, 1.6f);
                     }
 
 // if we still have items in the list then add to any empty slots available
                     for (ItemEntity itemIE : items) {
                         if (itemIE.getItem().getCount() != 0) {
                             for (int a = 0; a < this.getSizeInventory(); a++) {
-                                // dont include slots 36,37,38,39 which are boots, leggings, chestplate, helmet
+                                // don't include slots 36,37,38,39 which are boots, leggings, chestplate, helmet
                                 if ((a <= 35) || (a >= 40)) {
                                     if (this.getStackInSlot(a).isEmpty()) {
                                         this.setInventorySlotContents(a, itemIE.getItem());
 
                                         itemIE.remove();
-                                        isSound = true;
 
                                         break;
                                     } else {
@@ -168,7 +168,6 @@ public class MagnetBlockTileEntity extends ChestTileEntity {
                                                 isSpace = Math.min(isSpace, itemIE.getItem().getCount());
                                                 this.getStackInSlot(a).grow(isSpace);
                                                 itemIE.getItem().shrink(isSpace);
-                                                isSound = true;
 
                                                 if (itemIE.getItem().getCount() == 0) {
                                                     break;
@@ -181,14 +180,14 @@ public class MagnetBlockTileEntity extends ChestTileEntity {
                         }
                     }
 
-                    if (isSound)
-                        world.playSound(null, x, y, z, SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.PLAYERS, 1f, 1.6f);
-
-// if we still have items in the list then move them to player feet position
-// or void them ?
+                    // if we still have items in the list then move them to player feet position
+                    // or void them ?
                     for (ItemEntity itemIE : items) {
                         if (!itemIE.getItem().isEmpty()) {
-                            itemIE.setPosition(x + 0.5, y, z + 0.5);
+                            if (CrimsonMagnet.CONFIGURATION.magnetBlockVoid.get())
+                                itemIE.remove();
+                            else
+                                itemIE.setPosition(x + 0.5, y + 1, z + 0.5);
                         }
                     }
                 }

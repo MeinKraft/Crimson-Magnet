@@ -14,7 +14,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.particles.ParticleTypes;
 import net.minecraft.util.*;
 import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
@@ -25,18 +24,17 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 public class ItemMagnet extends Item {
     public ItemMagnet() { super(new Properties().group(ItemGroup.MISC).maxStackSize(1)); }
 
     private int tick=0;
 
-    //BlockPos converts to integer, so either center on the block its found on or store x/y/z independently
+    //BlockPos is integer, so either center on the block its found on or store x/y/z independently
     //private ArrayList<BlockPos> particlePos = new ArrayList<BlockPos>();
-    private ArrayList<Double> particlePosX = new ArrayList<Double>();
-    private ArrayList<Double> particlePosY = new ArrayList<Double>();
-    private ArrayList<Double> particlePosZ = new ArrayList<Double>();
+    private ArrayList<Double> particlePosX = new ArrayList<>();
+    private ArrayList<Double> particlePosY = new ArrayList<>();
+    private ArrayList<Double> particlePosZ = new ArrayList<>();
 
     @OnlyIn(Dist.CLIENT)
     @Override
@@ -62,7 +60,6 @@ public class ItemMagnet extends Item {
         // no need to check instance because were inside the item we need's class
         //if(!playerIn.world.isRemote && stack.getItem() instanceof ItemRuby){
 
-        //boolean active = stack.getOrCreateTag().contains("active") && stack.getOrCreateTag().getBoolean("active");
         boolean active = !stack.getOrCreateTag().getBoolean("active");
         float fPitch;
 
@@ -71,7 +68,8 @@ public class ItemMagnet extends Item {
         fPitch = (active) ? 0.9f : 0.01f;
         playerIn.world.playSound(null, playerIn.getPosition(), SoundEvents.BLOCK_NOTE_BLOCK_BELL, SoundCategory.PLAYERS, 1f, fPitch);
 
-        return new ActionResult<>(ActionResultType.SUCCESS, stack);
+        //return new ActionResult<>(ActionResultType.SUCCESS, stack);
+        return ActionResult.resultPass(stack);
     }
 
     // item enchant glint
@@ -80,17 +78,15 @@ public class ItemMagnet extends Item {
 
     @Override
     public void inventoryTick(ItemStack stack, World worldIn, Entity entityIn, int itemSlot, boolean isSelected) {
-        tick++;
+
 
         if (worldIn.isRemote) {
-            //CrimsonMagnet.LOGGER.info("STAGE ONE");
+            //CrimsonMagnet.LOGGER.info("Tick World Client");
             if (particlePosX.size() != 0) {
 //                CrimsonMagnet.LOGGER.info("STAGE TWO");
 
-                for (int a=0; a<particlePosX.size(); a++) {
+                for (int a=0; a<particlePosX.size(); a++)
                     worldIn.addParticle(ParticleTypes.CLOUD, particlePosX.get(a), particlePosY.get(a), particlePosZ.get(a), 0.0D, 0.0D, 0.0D);
-                    //worldIn.addParticle(ParticleTypes.CLOUD, particlePosX.get(a), particlePosY.get(a), particlePosZ.get(a), 0.0D, 0.0D, 0.0D);
-                }
 
                 particlePosX.clear();
                 particlePosY.clear();
@@ -99,10 +95,14 @@ public class ItemMagnet extends Item {
             }
         }
 
-        if (tick == 20) {
-            tick = 0;
+        if (!worldIn.isRemote) {
+            tick++;
 
-            if (!worldIn.isRemote) {
+            if (tick == 20) {
+                tick = 0;
+
+                CrimsonMagnet.LOGGER.info("Tick World Server");
+
                 if (stack.getOrCreateTag().getBoolean("active")) {
                     double x = entityIn.getPosX();
                     double y = entityIn.getPosY();
@@ -115,7 +115,7 @@ public class ItemMagnet extends Item {
                     AxisAlignedBB area = new AxisAlignedBB(x - r, y - r, z - r, x + r, y + r, z + r);
                     List<ItemEntity> items = worldIn.getEntitiesWithinAABB(EntityType.ITEM, area, item -> !item.getPersistentData().contains("PreventRemoteMovement"));
 
-                    int isSpace = 0;
+                    int isSpace;
                     boolean isSound = false;
 
                     //CrimsonMagnet.LOGGER.info("MAGNET: Ticking");
@@ -130,7 +130,7 @@ public class ItemMagnet extends Item {
                             }
 
                             for (int a = 0; a < inv.getSizeInventory(); a++) {
-                                // dont include slots 36,37,38,39 which are boots, leggings, chestplate, helmet
+                                // don't include slots 36,37,38,39 which are boots, leggings, chestplate, helmet
                                 if ((a <= 35) || (a >= 40)) {
                                     if (inv.getStackInSlot(a).getItem() == itemIE.getItem().getItem()) {
                                         isSpace = inv.getStackInSlot(a).getMaxStackSize() - inv.getStackInSlot(a).getCount();
@@ -154,7 +154,7 @@ public class ItemMagnet extends Item {
                         for (ItemEntity itemIE : items) {
                             if (itemIE.getItem().getCount() != 0) {
                                 for (int a = 0; a < inv.getSizeInventory(); a++) {
-                                    // dont include slots 36,37,38,39 which are boots, leggings, chestplate, helmet
+                                    // don't include slots 36,37,38,39 which are boots, leggings, chestplate, helmet
                                     if ((a <= 35) || (a >= 40)) {
                                         if (inv.getStackInSlot(a).isEmpty()) {
                                             inv.setInventorySlotContents(a, itemIE.getItem());
