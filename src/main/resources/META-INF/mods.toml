@@ -1,23 +1,24 @@
 modLoader="javafml"
 loaderVersion="[${loader_version},)"
 license="All rights reserved"
-issueTrackerURL="http://my.issue.tracker/" #optional
+issueTrackerURL="https://github.com/MeinKraft/Crimson-Magnet/issues" #optional
 
 [[mods]]
 modId="crimsonmagnet"
 version="${version}"
 displayName="Crimson Magnet"
 displayURL="http://crimsonfluff.com/"
+updateJSONURL = "https://github.com/MeinKraft/Crimson-Magnet/raw/main/update.json"
 authors="§4Crimson_Fluff"
 logoFile="logo.png" #optional
-credits="\n§bRaziel23x§r for casually giving me the push I needed !\n§bTechnovision§r for his awesome modding YouTube series\n§bTurtyWurty§r for his awesome modding YouTube series" #optional
-description=''' This is my first attempt at basic Minecraft 1.16.3 modding  '''
+credits="\n§bTechnovision§r for his awesome modding YouTube series\n§bTurtyWurty§r for his awesome modding YouTube series" #optional
+description=''' "Attraction is in the eye of the beholder" '''
 
 [[dependencies.crimsonmagnet]]
     modId="minecraft"
     mandatory=true
     versionRange="[${mc_version}]"
-  side="BOTH"
+    side="BOTH"
 [[dependencies.crimsonmagnet]]
     modId="forge"
     mandatory=true

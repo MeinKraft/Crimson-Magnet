@@ -1,0 +1,23 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "pattern": [
+        "# #",
+        "RCR",
+        "RRR"
+    ],
+    "key": {
+        "#": {
+            "item": "minecraft:iron_block"
+        },
+        "R": {
+            "item": "minecraft:redstone_block"
+        },
+        "C": {
+            "tag": "forge:chests/wooden"
+        }
+    },
+    "result": {
+        "item": "crimsonmagnet:magnet_block",
+        "count": 1
+    }
+}

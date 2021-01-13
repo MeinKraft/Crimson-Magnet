@@ -1,9 +1,9 @@
 package crimsonfluff.crimsonmagnet.tiles;
 
 import crimsonfluff.crimsonmagnet.CrimsonMagnet;
-import crimsonfluff.crimsonmagnet.GenericChestTypes;
 import crimsonfluff.crimsonmagnet.blocks.BlockMagnet;
 import crimsonfluff.crimsonmagnet.containers.ChestContainer;
+import crimsonfluff.crimsonmagnet.containers.GenericChestTypes;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
@@ -38,9 +38,7 @@ public class ChestTileEntity extends LockableLootTileEntity implements ITickable
     @Override
     public boolean isEmpty() {
         for (ItemStack itemstack : this.chestContents) {
-            if (!itemstack.isEmpty()) {
-                return false;
-            }
+            if (!itemstack.isEmpty()) return false;
         }
 
         return true;

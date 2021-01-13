@@ -1,6 +1,5 @@
 package crimsonfluff.crimsonmagnet.containers;
 
-import crimsonfluff.crimsonmagnet.GenericChestTypes;
 import crimsonfluff.crimsonmagnet.init.containersInit;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -34,10 +33,10 @@ public class ChestContainer extends Container {
 
         inventory.openInventory(playerInventory.player);
 
-        // Chest Inventory
+        // MagnetChest Inventory
         for (int chestRows = 0; chestRows < chestType.rows; chestRows++) {
             for (int chestCols = 0; chestCols < chestType.cols; chestCols++) {
-                this.addSlot(new Slot(inventory, (chestRows*9)+chestCols, chestType.xSlot + chestCols * 18, chestType.ySlot + chestRows * 18));
+                this.addSlot(new MagnetOutputSlot(inventory, (chestRows*9)+chestCols, chestType.xSlot + chestCols * 18, chestType.ySlot + chestRows * 18));
             }
         }
 
@@ -59,40 +58,37 @@ public class ChestContainer extends Container {
         return this.inventory.isUsableByPlayer(playerIn);
     }
 
-
-    // dont allow dragging items into Magnet.Inventory
-    @Override
-    public boolean canDragIntoSlot(Slot slotIn) {
-        return slotIn.getSlotIndex() >= this.getInventory().size();
-    }
-
-    // if Shift-Clicking
-    // Slot.slotNumber is where the stack *will* end up (Its destination slot number)
     @Override
     public ItemStack transferStackInSlot(PlayerEntity playerIn, int index) {
         ItemStack itemstack = ItemStack.EMPTY;
         Slot slot = this.inventorySlots.get(index);
-        //CrimsonMagnet.LOGGER.info("SLOT"+slot.slotNumber);
+        //CrimsonMagnet.LOGGER.info("SLOT: " + slot.slotNumber + " : " + this.chestType.size + " : " + this.inventorySlots.size());
 
         if (slot != null && slot.getHasStack()) {
             ItemStack itemstack1 = slot.getStack();
             itemstack = itemstack1.copy();
 
-            // if Shift Clicked into player Inventory (0-36,37,38,39,40) Feet/Legs/Chest/Helmet
+            // if Shift Clicked FROM MagnetBlock try to merge with HOTBAR and/or PlayerInventory
             if (index < this.chestType.size) {
                 if (!this.mergeItemStack(itemstack1, this.chestType.size, this.inventorySlots.size(), true)) {
                     return ItemStack.EMPTY;
                 }
-            }
-            else {
-                //if (!this.mergeItemStack(itemstack1, 0, this.chestType.size, false)) {
-                return ItemStack.EMPTY;
+            } else {
+                // if FROM PlayerInventory try to merge with HOTBAR
+                if (index >= 9 && index < 36) {
+                    if (!this.mergeItemStack(itemstack1, 36, 45, false)) {
+                        return ItemStack.EMPTY;
+                    }
+
+                    // if FROM HOTBAR then try to merge with PlayerInventory
+                } else if (!this.mergeItemStack(itemstack1, 9, 36, false)) {
+                    return ItemStack.EMPTY;
+                }
             }
 
             if (itemstack1.isEmpty()) {
                 slot.putStack(ItemStack.EMPTY);
-            }
-            else {
+            } else {
                 slot.onSlotChanged();
             }
         }

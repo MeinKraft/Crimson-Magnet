@@ -1,5 +1,6 @@
-package crimsonfluff.crimsonmagnet;
+package crimsonfluff.crimsonmagnet.containers;
 
+import crimsonfluff.crimsonmagnet.CrimsonMagnet;
 import net.minecraft.util.IStringSerializable;
 import net.minecraft.util.ResourceLocation;
 
@@ -8,7 +9,6 @@ import javax.annotation.Nullable;
 public enum GenericChestTypes implements IStringSerializable {
     MAGNET("Magnet", 1, 9, 176, 130, 8, 18, 8, 48, new ResourceLocation(CrimsonMagnet.MOD_ID, "textures/gui/crimson_chest.png"), 256, 256);
 
-    public final String title;                      // title of gui
     public final int size;                          // number of inventory slots (rows * columns)
     public final int rows;                          // number of rows
     public final int cols;                          // number of columns
@@ -27,7 +27,7 @@ public enum GenericChestTypes implements IStringSerializable {
     }
 
     GenericChestTypes(@Nullable String title, int rows, int cols, int xSize, int ySize, int xSlot, int ySlot, int xSlotInv, int ySlotInv, ResourceLocation guiTexture, int textureXSize, int textureYSize) {
-        this.title = title == null ? this.name() : title;
+        //this.title = title == null ? this.name() : title;
         this.size = rows * cols;
         this.rows = rows;
         this.cols = cols;

@@ -1,5 +1,6 @@
 package crimsonfluff.crimsonmagnet;
 
+import crimsonfluff.crimsonmagnet.containers.MagnetChestScreen;
 import crimsonfluff.crimsonmagnet.init.*;
 import crimsonfluff.crimsonmagnet.util.ConfigBuilder;
 import crimsonfluff.crimsonmagnet.util.Curios;
@@ -12,6 +13,7 @@ import net.minecraftforge.client.event.TextureStitchEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.InterModComms;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
@@ -24,7 +26,7 @@ import org.apache.logging.log4j.Logger;
 import top.theillusivec4.curios.api.SlotTypeMessage;
 import top.theillusivec4.curios.api.SlotTypePreset;
 
-@Mod("crimsonmagnet")
+@Mod(CrimsonMagnet.MOD_ID)
 public class CrimsonMagnet {
     public static final String MOD_ID = "crimsonmagnet";
     public static final Logger LOGGER = LogManager.getLogger("crimsonmagnet");
@@ -32,7 +34,7 @@ public class CrimsonMagnet {
     public static final ConfigBuilder CONFIGURATION = new ConfigBuilder();
 
     public CrimsonMagnet() {
-        MOD_EVENTBUS.addListener(this::doClientStuff);
+        DistExecutor.runWhenOn(Dist.CLIENT, () -> () -> MOD_EVENTBUS.addListener(this::doClientStuff));
         MOD_EVENTBUS.addListener(this::enqueueIMC);
 
         ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, CONFIGURATION.CLIENT);
@@ -47,7 +49,7 @@ public class CrimsonMagnet {
 
     @OnlyIn(Dist.CLIENT)
     private void doClientStuff(final FMLClientSetupEvent event) {
-		ScreenManager.registerFactory(containersInit.GENERIC_CHEST.get(), GenericChestScreen::new);
+		ScreenManager.registerFactory(containersInit.GENERIC_CHEST.get(), MagnetChestScreen::new);
 	}
 
     private void enqueueIMC(final InterModEnqueueEvent event) {

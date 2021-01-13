@@ -1,0 +1,23 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "pattern": [
+        "# #",
+        "RCR",
+        "RRR"
+    ],
+    "key": {
+        "#": {
+            "item": "minecraft:iron_ingot"
+        },
+        "R": {
+            "item": "minecraft:redstone"
+        },
+        "C": {
+            "tag": "forge:chests/wooden"
+        }
+    },
+    "result": {
+        "item": "crimsonmagnet:magnet",
+        "count": 1
+    }
+}

@@ -5,10 +5,14 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.item.ExperienceOrbEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.IInventory;
+import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.INamedContainerProvider;
+import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Hand;
@@ -23,11 +27,11 @@ import javax.annotation.Nullable;
 public class BlockMagnet extends Block {
     public BlockMagnet() {
         super(Properties.create(Material.ROCK)
-                .hardnessAndResistance(5.0f, 6.0f)
-                .sound(SoundType.STONE)
-                .harvestLevel(1)
-                .harvestTool(ToolType.PICKAXE)
-                .setRequiresTool());
+            .hardnessAndResistance(5.0f, 6.0f)
+            .sound(SoundType.STONE)
+            .harvestLevel(1)
+            .harvestTool(ToolType.PICKAXE)
+            .setRequiresTool());
     }
 
     @Override
@@ -44,12 +48,17 @@ public class BlockMagnet extends Block {
     public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit) {
         if (!worldIn.isRemote) {
             INamedContainerProvider inamedcontainerprovider = this.getContainer(state, worldIn, pos);
-            if (inamedcontainerprovider != null) {
-                player.openContainer(inamedcontainerprovider);
-            }
-
+            if (inamedcontainerprovider != null) player.openContainer(inamedcontainerprovider);
         }
         return ActionResultType.SUCCESS;
+    }
+
+    @Override
+    public void onBlockPlacedBy(World worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
+        if (stack.hasDisplayName()) {
+            MagnetBlockTileEntity tile = (MagnetBlockTileEntity) worldIn.getTileEntity(pos);
+            if (tile != null) tile.setCustomName(stack.getDisplayName());
+        }
     }
 
     @Override
@@ -58,21 +67,42 @@ public class BlockMagnet extends Block {
     }
 
     @Override
-    public int getComparatorInputOverride(BlockState blockState, World worldIn, BlockPos pos) {
+    public int getComparatorInputOverride(BlockState state, World worldIn, BlockPos pos) {
         return Container.calcRedstoneFromInventory((IInventory) worldIn.getTileEntity(pos));
     }
 
     @Override
     @Nullable
-    public INamedContainerProvider getContainer(BlockState state, World world, BlockPos pos) {
-        TileEntity tileentity = world.getTileEntity(pos);
-        return tileentity instanceof INamedContainerProvider ? (INamedContainerProvider) tileentity : null;
+    public INamedContainerProvider getContainer(BlockState state, World worldIn, BlockPos pos) {
+        TileEntity tile = worldIn.getTileEntity(pos);
+        return tile instanceof INamedContainerProvider ? (INamedContainerProvider) tile : null;
     }
 
     @Override
     public boolean eventReceived(BlockState state, World worldIn, BlockPos pos, int id, int param) {
         super.eventReceived(state, worldIn, pos, id, param);
-        TileEntity tileentity = worldIn.getTileEntity(pos);
-        return tileentity == null ? false : tileentity.receiveClientEvent(id, param);
+        TileEntity tile = worldIn.getTileEntity(pos);
+        return tile != null && tile.receiveClientEvent(id, param);
+//        return tile == null ? false : tile.receiveClientEvent(id, param);
+    }
+
+    // Called when block is destroyed
+    @Override
+    public void onReplaced(BlockState state, World worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
+        MagnetBlockTileEntity tile = (MagnetBlockTileEntity) worldIn.getTileEntity(pos);
+        if (tile != null && state.getBlock() != newState.getBlock()) {
+
+            // if MagnetBlock is broken then explode Inventory/XP all over the place
+            InventoryHelper.dropInventoryItems(worldIn, pos, tile);
+            int i = tile.tankFluidAmount();
+            while(i > 0) {
+                int j = ExperienceOrbEntity.getXPSplit(i);
+                i -= j;
+                worldIn.addEntity(new ExperienceOrbEntity(worldIn, pos.getX(), pos.getY(), pos.getZ(), j));
+            }
+
+            worldIn.updateComparatorOutputLevel(pos, this);
+            worldIn.removeTileEntity(pos);
+        }
     }
 }

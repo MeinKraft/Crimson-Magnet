@@ -12,17 +12,20 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
 import net.minecraft.particles.ParticleTypes;
-import net.minecraft.util.*;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.Hand;
+import net.minecraft.util.SoundCategory;
+import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
+import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class ItemMagnet extends Item {
@@ -30,25 +33,13 @@ public class ItemMagnet extends Item {
 
     private int tick=0;
 
-    //BlockPos is integer, so either center on the block its found on or store x/y/z independently
-    //private ArrayList<BlockPos> particlePos = new ArrayList<BlockPos>();
-    private ArrayList<Double> particlePosX = new ArrayList<>();
-    private ArrayList<Double> particlePosY = new ArrayList<>();
-    private ArrayList<Double> particlePosZ = new ArrayList<>();
-
     @OnlyIn(Dist.CLIENT)
     @Override
     public void addInformation(ItemStack stack, World worldIn, List<ITextComponent> tooltip, ITooltipFlag flagIn) {
-        tooltip.add((new TranslationTextComponent("tip." + CrimsonMagnet.MOD_ID + ".item").mergeStyle(TextFormatting.GREEN)));
-
-        String isXPCS;
-        if (CrimsonMagnet.CONFIGURATION.magnetCollectXP.get())
-            isXPCS = "Enabled";
-        else
-            isXPCS = "Disabled";
+        tooltip.add(new TranslationTextComponent("tip." + CrimsonMagnet.MOD_ID + ".item").mergeStyle(TextFormatting.GREEN));
 
         tooltip.add(new StringTextComponent("Range is " + CrimsonMagnet.CONFIGURATION.magnetRange.get() + " blocks").mergeStyle(TextFormatting.AQUA));
-        tooltip.add(new StringTextComponent("XP Collection is " + isXPCS).mergeStyle(TextFormatting.AQUA));
+        tooltip.add(new StringTextComponent("XP Collection is " + (CrimsonMagnet.CONFIGURATION.magnetCollectXP.get() ? "Enabled" : "Disabled")).mergeStyle(TextFormatting.AQUA));
 
         super.addInformation(stack, worldIn, tooltip, flagIn);
     }
@@ -56,17 +47,10 @@ public class ItemMagnet extends Item {
     @Override
     public ActionResult<ItemStack> onItemRightClick(World worldIn, PlayerEntity playerIn, Hand handIn) {
         ItemStack stack = playerIn.getHeldItem(handIn);
-
-        // no need to check instance because were inside the item we need's class
-        //if(!playerIn.world.isRemote && stack.getItem() instanceof ItemRuby){
-
         boolean active = !stack.getOrCreateTag().getBoolean("active");
-        float fPitch;
 
         stack.getOrCreateTag().putBoolean("active", active);
-
-        fPitch = (active) ? 0.9f : 0.01f;
-        playerIn.world.playSound(null, playerIn.getPosition(), SoundEvents.BLOCK_NOTE_BLOCK_BELL, SoundCategory.PLAYERS, 1f, fPitch);
+        playerIn.world.playSound(null, playerIn.getPosition(), SoundEvents.BLOCK_NOTE_BLOCK_BELL, SoundCategory.PLAYERS, 1f, (active) ? 0.9f : 0.01f);
 
         //return new ActionResult<>(ActionResultType.SUCCESS, stack);
         return ActionResult.resultPass(stack);
@@ -78,30 +62,12 @@ public class ItemMagnet extends Item {
 
     @Override
     public void inventoryTick(ItemStack stack, World worldIn, Entity entityIn, int itemSlot, boolean isSelected) {
-
-
-        if (worldIn.isRemote) {
-            //CrimsonMagnet.LOGGER.info("Tick World Client");
-            if (particlePosX.size() != 0) {
-//                CrimsonMagnet.LOGGER.info("STAGE TWO");
-
-                for (int a=0; a<particlePosX.size(); a++)
-                    worldIn.addParticle(ParticleTypes.CLOUD, particlePosX.get(a), particlePosY.get(a), particlePosZ.get(a), 0.0D, 0.0D, 0.0D);
-
-                particlePosX.clear();
-                particlePosY.clear();
-                particlePosZ.clear();
-                return;
-            }
-        }
-
         if (!worldIn.isRemote) {
             tick++;
 
             if (tick == 20) {
                 tick = 0;
-
-                CrimsonMagnet.LOGGER.info("Tick World Server");
+                //CrimsonMagnet.LOGGER.info("Tick World Server");
 
                 if (stack.getOrCreateTag().getBoolean("active")) {
                     double x = entityIn.getPosX();
@@ -115,99 +81,32 @@ public class ItemMagnet extends Item {
                     AxisAlignedBB area = new AxisAlignedBB(x - r, y - r, z - r, x + r, y + r, z + r);
                     List<ItemEntity> items = worldIn.getEntitiesWithinAABB(EntityType.ITEM, area, item -> !item.getPersistentData().contains("PreventRemoteMovement"));
 
-                    int isSpace;
                     boolean isSound = false;
 
-                    //CrimsonMagnet.LOGGER.info("MAGNET: Ticking");
-
                     if (items.size() != 0) {
-// try to merge items found with existing items already in Player inventory
                         for (ItemEntity itemIE : items) {
-                            if (CrimsonMagnet.CONFIGURATION.magnetShowParticles.get()) {
-                                particlePosX.add(itemIE.getPosX());
-                                particlePosY.add(itemIE.getPosY());
-                                particlePosZ.add(itemIE.getPosZ());
-                            }
+                            if (CrimsonMagnet.CONFIGURATION.magnetShowParticles.get())
+                                ((ServerWorld) worldIn).spawnParticle(ParticleTypes.CLOUD, itemIE.getPosX(), itemIE.getPosY(), itemIE.getPosZ(), 2, 0D, 0D, 0D, 0D);
 
-                            for (int a = 0; a < inv.getSizeInventory(); a++) {
-                                // don't include slots 36,37,38,39 which are boots, leggings, chestplate, helmet
-                                if ((a <= 35) || (a >= 40)) {
-                                    if (inv.getStackInSlot(a).getItem() == itemIE.getItem().getItem()) {
-                                        isSpace = inv.getStackInSlot(a).getMaxStackSize() - inv.getStackInSlot(a).getCount();
-
-                                        if (isSpace != 0) {
-                                            isSpace = Math.min(isSpace, itemIE.getItem().getCount());
-                                            inv.getStackInSlot(a).grow(isSpace);
-                                            itemIE.getItem().shrink(isSpace);
-                                            isSound = true;
-
-                                            if (itemIE.getItem().getCount() == 0) {
-                                                break;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
+                            // TODO: NOTE: Magnet does not have void option - should it?
+                            // If Return StackSize is different then must have been picked up, so isSound=True
+                            if (!inv.addItemStackToInventory(itemIE.getItem())) itemIE.setPosition(x, y, z);
+                            else isSound = true;
                         }
 
-// if we still have items in the list then add to any empty slots available
-                        for (ItemEntity itemIE : items) {
-                            if (itemIE.getItem().getCount() != 0) {
-                                for (int a = 0; a < inv.getSizeInventory(); a++) {
-                                    // don't include slots 36,37,38,39 which are boots, leggings, chestplate, helmet
-                                    if ((a <= 35) || (a >= 40)) {
-                                        if (inv.getStackInSlot(a).isEmpty()) {
-                                            inv.setInventorySlotContents(a, itemIE.getItem());
-
-                                            itemIE.remove();
-                                            isSound = true;
-
-                                            break;
-                                        } else {
-                                            if (inv.getStackInSlot(a).getItem() == itemIE.getItem().getItem()) {
-                                                isSpace = inv.getStackInSlot(a).getMaxStackSize() - inv.getStackInSlot(a).getCount();
-
-                                                if (isSpace != 0) {
-                                                    isSpace = Math.min(isSpace, itemIE.getItem().getCount());
-                                                    inv.getStackInSlot(a).grow(isSpace);
-                                                    itemIE.getItem().shrink(isSpace);
-                                                    isSound = true;
-
-                                                    if (itemIE.getItem().getCount() == 0) {
-                                                        break;
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        if (isSound)
-                            worldIn.playSound(null, x, y, z, SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.PLAYERS, 1f, 1.6f);
-
-// if we still have items in the list then move them to player feet position
-// or void them ?
-                        for (ItemEntity itemIE : items) {
-                            if (!itemIE.getItem().isEmpty()) {
-                                itemIE.setPosition(x + 0.5, y, z + 0.5);
-                            }
-                        }
+                        if (isSound) worldIn.playSound(null, x, y, z, SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.PLAYERS, 1f, 1.6f);
                     }
 
-// Handle the XP
+                    // Handle the XP
                     List<ExperienceOrbEntity> orbs = worldIn.getEntitiesWithinAABB(ExperienceOrbEntity.class, area);
 
                     if (orbs.size() != 0) {
+                        // giveExperiencePoints is supposed to play sound, but does not always happen - maybe drowned out by magnet pickup sound?
                         worldIn.playSound(null, x, y, z, SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, SoundCategory.PLAYERS, 1f, 1f);
 
                         for (ExperienceOrbEntity orb : orbs) {
-                            if (CrimsonMagnet.CONFIGURATION.magnetShowParticles.get()) {
-                                particlePosX.add(orb.getPosX());
-                                particlePosY.add(orb.getPosY());
-                                particlePosZ.add(orb.getPosZ());
-                            }
+                            if (CrimsonMagnet.CONFIGURATION.magnetShowParticles.get())
+                                ((ServerWorld) worldIn).spawnParticle(ParticleTypes.CLOUD, orb.getPosX(), orb.getPosY(), orb.getPosZ(), 2, 0D, 0D, 0D, 0D);
 
                             playerIn.giveExperiencePoints(orb.getXpValue());
                             orb.remove();
