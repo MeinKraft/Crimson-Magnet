@@ -10,8 +10,8 @@ import top.theillusivec4.curios.api.CuriosApi;
 public class Curios {
     public static ItemStack findItem(Item item, LivingEntity entity) {
         return CuriosApi.getCuriosHelper().findEquippedCurio(item, entity)
-                .map(ImmutableTriple::getRight)
-                .orElse(ItemStack.EMPTY);
+            .map(ImmutableTriple::getRight)
+            .orElse(ItemStack.EMPTY);
     }
 
     public static boolean isModLoaded() { return (ModList.get().getModContainerById("curios").isPresent()); }

@@ -2,14 +2,12 @@ package crimsonfluff.crimsonmagnet.tiles;
 
 import crimsonfluff.crimsonmagnet.CrimsonMagnet;
 import crimsonfluff.crimsonmagnet.blocks.BlockMagnet;
-import crimsonfluff.crimsonmagnet.containers.ChestContainer;
-import crimsonfluff.crimsonmagnet.containers.GenericChestTypes;
+import crimsonfluff.crimsonmagnet.containers.Container;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.ItemStackHelper;
-import net.minecraft.inventory.container.Container;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.ITickableTileEntity;
@@ -21,13 +19,11 @@ import net.minecraft.util.text.TranslationTextComponent;
 
 public class ChestTileEntity extends LockableLootTileEntity implements ITickableTileEntity {
     private NonNullList<ItemStack> chestContents;
-    private GenericChestTypes chestTypes;
     protected int numPlayersUsing;
 
-    public ChestTileEntity(TileEntityType<?> typeIn, GenericChestTypes chestTypes) {
+    public ChestTileEntity(TileEntityType<?> typeIn) {
         super(typeIn);
-        this.chestTypes = chestTypes;
-        this.chestContents = NonNullList.<ItemStack>withSize(chestTypes.size, ItemStack.EMPTY);
+        this.chestContents = NonNullList.<ItemStack>withSize(11, ItemStack.EMPTY);
     }
 
     @Override
@@ -118,7 +114,7 @@ public class ChestTileEntity extends LockableLootTileEntity implements ITickable
 
     @Override
     public void setItems(NonNullList<ItemStack> itemsIn) {
-        this.chestContents = NonNullList.<ItemStack>withSize(this.chestTypes.size, ItemStack.EMPTY);
+        this.chestContents = NonNullList.<ItemStack>withSize(11, ItemStack.EMPTY);
 
         for (int i = 0; i < itemsIn.size(); i++) {
             if (i < this.chestContents.size()) {
@@ -128,8 +124,8 @@ public class ChestTileEntity extends LockableLootTileEntity implements ITickable
     }
 
     @Override
-    protected Container createMenu(int windowId, PlayerInventory playerInventory) {
-        return ChestContainer.createMagnetContainer(windowId, playerInventory, this);
+    protected net.minecraft.inventory.container.Container createMenu(int windowId, PlayerInventory playerInventory) {
+        return Container.createMagnetContainer(windowId, playerInventory, this);
     }
 
     @Override

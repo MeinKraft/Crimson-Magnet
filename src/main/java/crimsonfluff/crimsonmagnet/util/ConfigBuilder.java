@@ -7,6 +7,7 @@ public class ConfigBuilder {
     public ForgeConfigSpec.IntValue magnetRange;
     public ForgeConfigSpec.IntValue magnetBlockRange;
     public ForgeConfigSpec.BooleanValue magnetCollectXP;
+    public ForgeConfigSpec.IntValue magnetDurability;
     public ForgeConfigSpec.BooleanValue magnetBlockCollectXP;
     public ForgeConfigSpec.BooleanValue magnetBlockVoid;
     public ForgeConfigSpec.BooleanValue magnetBlockCollectSound;
@@ -29,6 +30,10 @@ public class ConfigBuilder {
         magnetShowParticles = builder
                 .comment("Show particle effects ?  Default: true")
                 .define("MagnetShowParticles", true);
+
+        magnetDurability = builder
+                .comment("Durability of the Magnet ?  Default: 250")
+                .defineInRange("MagnetDurability", 250, 1, 9000);
 
         builder.pop();
 

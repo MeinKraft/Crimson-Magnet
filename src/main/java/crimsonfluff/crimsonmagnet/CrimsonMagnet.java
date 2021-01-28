@@ -1,6 +1,6 @@
 package crimsonfluff.crimsonmagnet;
 
-import crimsonfluff.crimsonmagnet.containers.MagnetChestScreen;
+import crimsonfluff.crimsonmagnet.containers.ChestScreen;
 import crimsonfluff.crimsonmagnet.init.*;
 import crimsonfluff.crimsonmagnet.util.ConfigBuilder;
 import crimsonfluff.crimsonmagnet.util.Curios;
@@ -29,7 +29,7 @@ import top.theillusivec4.curios.api.SlotTypePreset;
 @Mod(CrimsonMagnet.MOD_ID)
 public class CrimsonMagnet {
     public static final String MOD_ID = "crimsonmagnet";
-    public static final Logger LOGGER = LogManager.getLogger("crimsonmagnet");
+    public static final Logger LOGGER = LogManager.getLogger(CrimsonMagnet.MOD_ID);
     final IEventBus MOD_EVENTBUS = FMLJavaModLoadingContext.get().getModEventBus();
     public static final ConfigBuilder CONFIGURATION = new ConfigBuilder();
 
@@ -49,7 +49,7 @@ public class CrimsonMagnet {
 
     @OnlyIn(Dist.CLIENT)
     private void doClientStuff(final FMLClientSetupEvent event) {
-		ScreenManager.registerFactory(containersInit.GENERIC_CHEST.get(), MagnetChestScreen::new);
+		ScreenManager.registerFactory(containersInit.GENERIC_CHEST.get(), ChestScreen::new);
 	}
 
     private void enqueueIMC(final InterModEnqueueEvent event) {
@@ -58,8 +58,8 @@ public class CrimsonMagnet {
                 InterModComms.sendTo("curios", SlotTypeMessage.REGISTER_TYPE,
                     () -> new SlotTypeMessage
                         .Builder("magnet")
-                        .size(1)
                         .icon(new ResourceLocation(CrimsonMagnet.MOD_ID, "item/empty_magnet_slot"))
+                        .size(1)
                         .build());
             }
         }

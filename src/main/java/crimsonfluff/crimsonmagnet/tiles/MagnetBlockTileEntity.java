@@ -1,7 +1,6 @@
 package crimsonfluff.crimsonmagnet.tiles;
 
 import crimsonfluff.crimsonmagnet.CrimsonMagnet;
-import crimsonfluff.crimsonmagnet.containers.GenericChestTypes;
 import crimsonfluff.crimsonmagnet.init.fluidsInit;
 import crimsonfluff.crimsonmagnet.init.tilesInit;
 import net.minecraft.block.BlockState;
@@ -38,9 +37,7 @@ public class MagnetBlockTileEntity extends ChestTileEntity {
         }
     };
     private final LazyOptional<IFluidHandler> fluidHandler = LazyOptional.of(() -> tank);
-    public MagnetBlockTileEntity() {
-        super(tilesInit.MAGNET_BLOCK_TILE.get(), GenericChestTypes.MAGNET);
-    }
+    public MagnetBlockTileEntity() { super(tilesInit.MAGNET_BLOCK_TILE.get()); }
 
     private int ticks=0;
     public int tankFluidAmount() { return tank.getFluidAmount(); }
@@ -102,6 +99,8 @@ public class MagnetBlockTileEntity extends ChestTileEntity {
                     }
                 }
 
+
+                // NOTE: Start from a=2 because first 2 slots are xpBucketIn and xpBucketOut
                 // Handle the Items !
                 List<ItemEntity> items = world.getEntitiesWithinAABB(EntityType.ITEM, area, item -> !item.getPersistentData().contains("PreventRemoteMovement"));
 
@@ -111,7 +110,7 @@ public class MagnetBlockTileEntity extends ChestTileEntity {
                 if (items.size() != 0) {
                     // try to merge items found with existing items already in MagnetBlock inventory
                     for (ItemEntity itemIE : items) {
-                        for (int a = 0; a < this.getSizeInventory(); a++) {
+                        for (int a = 2; a < this.getSizeInventory(); a++) {
                             if (this.getStackInSlot(a).getItem() == itemIE.getItem().getItem()) {
                                 isSpace = this.getStackInSlot(a).getMaxStackSize() - this.getStackInSlot(a).getCount();
 
@@ -132,7 +131,7 @@ public class MagnetBlockTileEntity extends ChestTileEntity {
 
                     // if items NOT isEmpty then add them into EMPTY slots
                     // TODO: Test .getCount instead of isEmpty <-cheaper
-                    int a = 0;
+                    int a = 2;
                     for (ItemEntity itemIE : items) {
                         if (itemIE.getItem().getCount() != 0) {
                             if (a<this.getSizeInventory()) {
