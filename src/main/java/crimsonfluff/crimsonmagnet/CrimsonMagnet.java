@@ -1,7 +1,11 @@
 package crimsonfluff.crimsonmagnet;
 
-import crimsonfluff.crimsonmagnet.containers.ChestScreen;
-import crimsonfluff.crimsonmagnet.init.*;
+import crimsonfluff.crimsonmagnet.containers.MagnetBlockScreen;
+import crimsonfluff.crimsonmagnet.containers.SackScreen;
+import crimsonfluff.crimsonmagnet.init.blocksInit;
+import crimsonfluff.crimsonmagnet.init.containersInit;
+import crimsonfluff.crimsonmagnet.init.itemsInit;
+import crimsonfluff.crimsonmagnet.init.tilesInit;
 import crimsonfluff.crimsonmagnet.util.ConfigBuilder;
 import crimsonfluff.crimsonmagnet.util.Curios;
 import net.minecraft.client.gui.ScreenManager;
@@ -30,16 +34,16 @@ import top.theillusivec4.curios.api.SlotTypePreset;
 public class CrimsonMagnet {
     public static final String MOD_ID = "crimsonmagnet";
     public static final Logger LOGGER = LogManager.getLogger(CrimsonMagnet.MOD_ID);
-    final IEventBus MOD_EVENTBUS = FMLJavaModLoadingContext.get().getModEventBus();
     public static final ConfigBuilder CONFIGURATION = new ConfigBuilder();
+
+    final IEventBus MOD_EVENTBUS = FMLJavaModLoadingContext.get().getModEventBus();
 
     public CrimsonMagnet() {
         DistExecutor.runWhenOn(Dist.CLIENT, () -> () -> MOD_EVENTBUS.addListener(this::doClientStuff));
         MOD_EVENTBUS.addListener(this::enqueueIMC);
 
-        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, CONFIGURATION.CLIENT);
+        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, CONFIGURATION.COMMON);
         tilesInit.TILES.register(MOD_EVENTBUS);
-        fluidsInit.FLUIDS.register(MOD_EVENTBUS);
         blocksInit.BLOCKS.register(MOD_EVENTBUS);
         itemsInit.ITEMS.register(MOD_EVENTBUS);
         containersInit.CONTAINERS.register(MOD_EVENTBUS);
@@ -49,8 +53,9 @@ public class CrimsonMagnet {
 
     @OnlyIn(Dist.CLIENT)
     private void doClientStuff(final FMLClientSetupEvent event) {
-		ScreenManager.registerFactory(containersInit.GENERIC_CHEST.get(), ChestScreen::new);
-	}
+		ScreenManager.registerFactory(containersInit.MAGNET_CHEST.get(), MagnetBlockScreen::new);
+        ScreenManager.registerFactory(containersInit.SACK_CHEST.get(), SackScreen::new);
+    }
 
     private void enqueueIMC(final InterModEnqueueEvent event) {
         if (Curios.isModLoaded()) {

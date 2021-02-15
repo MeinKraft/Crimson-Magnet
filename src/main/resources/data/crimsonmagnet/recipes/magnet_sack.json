@@ -1,0 +1,20 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "pattern": [
+        "CCC",
+        "C#C",
+        "CCC"
+    ],
+    "key": {
+        "#": {
+            "item": "crimsonmagnet:magnet"
+        },
+        "C": {
+            "item": "minecraft:leather"
+        }
+    },
+    "result": {
+        "item": "crimsonmagnet:magnet_sack",
+        "count": 1
+    }
+}

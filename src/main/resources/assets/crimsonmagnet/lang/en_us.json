@@ -1,10 +1,17 @@
 {
   "curios.identifier.magnet": "Magnet Slot",
+
   "item.crimsonmagnet.magnet": "Crimson Magnet",
-  "item.crimsonmagnet.xp_bucket": "Liquid XP Bucket",
+  "tip.crimsonmagnet.item": "A Magnet for attracting items and xp orbs",
+  "item.crimsonmagnet.magnet_sack": "Crimson Magnet Sack",
+  "tip.crimsonmagnet.magnet_sack": "A Magnet Sack for attracting items and xp orbs",
+
   "block.crimsonmagnet.magnet_block": "Magnet Block",
-  "tip.crimsonmagnet.item": "A magnet for attracting items and xp orbs",
-  "tip.crimsonmagnet.block": "A magnet block for attracting items and xp orbs",
-  "fluid.crimsonmagnet.xp_fluid": "Liquid XP",
-  "container.crimsonmagnet.magnet": "Magnet Block"
+  "tip.crimsonmagnet.block": "A Magnet block for attracting items and xp orbs",
+
+  "item.crimsonmagnet.xp_item": "Solidified XP Orb",
+  "tip.crimsonmagnet.xp_item": "Right Click to consume",
+
+  "container.crimsonmagnet.magnet": "Magnet Block",
+  "container.crimsonmagnet.sack": "Magnet Sack"
 }

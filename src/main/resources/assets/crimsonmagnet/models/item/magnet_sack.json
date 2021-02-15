@@ -1,6 +1,6 @@
 {
     "parent": "item/generated",
     "textures": {
-        "layer0": "crimsonmagnet:item/xp_bucket"
+        "layer0": "crimsonmagnet:item/magnet_sack"
     }
 }

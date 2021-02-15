@@ -6,7 +6,6 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.item.ExperienceOrbEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.InventoryHelper;
@@ -94,12 +93,6 @@ public class BlockMagnet extends Block {
 
             // if MagnetBlock is broken then explode Inventory/XP all over the place
             InventoryHelper.dropInventoryItems(worldIn, pos, tile);
-            int i = tile.tankFluidAmount();
-            while(i > 0) {
-                int j = ExperienceOrbEntity.getXPSplit(i);
-                i -= j;
-                worldIn.addEntity(new ExperienceOrbEntity(worldIn, pos.getX(), pos.getY(), pos.getZ(), j));
-            }
 
             worldIn.updateComparatorOutputLevel(pos, this);
             worldIn.removeTileEntity(pos);

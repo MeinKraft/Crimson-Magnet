@@ -1,6 +1,7 @@
 {
   "replace": "false",
   "values": [
-    "crimsonmagnet:magnet"
+    "crimsonmagnet:magnet",
+    "crimsonmagnet:magnet_sack"
   ]
 }

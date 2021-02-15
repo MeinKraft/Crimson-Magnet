@@ -12,11 +12,13 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
-public class ChestScreen extends ContainerScreen<Container> implements IHasContainer<Container> {
-    private static final ResourceLocation GUI_TEXTURE = new ResourceLocation(CrimsonMagnet.MOD_ID, "textures/gui/crimson_chest.png");
+public class MagnetBlockScreen extends ContainerScreen<MagnetBlockContainer> implements IHasContainer<MagnetBlockContainer> {
+    private static final ResourceLocation GUI_TEXTURE = new ResourceLocation(CrimsonMagnet.MOD_ID, "textures/gui/magnet_chest.png");
 
-    public ChestScreen(Container container, PlayerInventory playerInventory, ITextComponent title) {
+    public MagnetBlockScreen(MagnetBlockContainer container, PlayerInventory playerInventory, ITextComponent title) {
         super(container, playerInventory, title);
+        this.ySize = 130;
+        this.xSize = 202 - 26;
 
         this.passEvents = false;
     }
@@ -32,7 +34,7 @@ public class ChestScreen extends ContainerScreen<Container> implements IHasConta
     protected void drawGuiContainerForegroundLayer(MatrixStack matrixStack, int mouseX, int mouseY) {
         this.font.func_243248_b(matrixStack, this.title, 8, 6.0F, 4210752);
 
-        this.font.func_243248_b(matrixStack, this.playerInventory.getDisplayName(), 8, (float) (152 - 93), 4210752);
+        this.font.func_243248_b(matrixStack, this.playerInventory.getDisplayName(), 8, (float) (this.ySize - 93), 4210752);
     }
 
     @Override
@@ -44,6 +46,6 @@ public class ChestScreen extends ContainerScreen<Container> implements IHasConta
         int x = (this.width - this.xSize) / 2;
         int y = (this.height - this.ySize) / 2;
 
-        blit(matrixStack, x, y, 0, 0, this.xSize, this.ySize, 256, 256);
+        blit(matrixStack, x-26, y, 0, 0, this.xSize+26, this.ySize, 256, 256);
     }
 }

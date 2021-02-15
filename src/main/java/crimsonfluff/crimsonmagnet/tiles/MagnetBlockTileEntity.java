@@ -1,13 +1,14 @@
 package crimsonfluff.crimsonmagnet.tiles;
 
 import crimsonfluff.crimsonmagnet.CrimsonMagnet;
-import crimsonfluff.crimsonmagnet.init.fluidsInit;
+import crimsonfluff.crimsonmagnet.init.itemsInit;
 import crimsonfluff.crimsonmagnet.init.tilesInit;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.item.ExperienceOrbEntity;
 import net.minecraft.entity.item.ItemEntity;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.particles.ParticleTypes;
 import net.minecraft.util.Direction;
@@ -17,30 +18,12 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.server.ServerWorld;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fluids.FluidAttributes;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.fluids.capability.templates.FluidTank;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.List;
 
 public class MagnetBlockTileEntity extends ChestTileEntity {
-    protected FluidTank tank = new FluidTank(FluidAttributes.BUCKET_VOLUME * 1) {
-        @Override
-        public boolean isFluidValid(FluidStack stack) {
-            return stack.getFluid() == fluidsInit.XP_FLUID.get();
-        }
-    };
-    private final LazyOptional<IFluidHandler> fluidHandler = LazyOptional.of(() -> tank);
     public MagnetBlockTileEntity() { super(tilesInit.MAGNET_BLOCK_TILE.get()); }
-
     private int ticks=0;
-    public int tankFluidAmount() { return tank.getFluidAmount(); }
 
     @Override
     public void tick() {
@@ -55,131 +38,142 @@ public class MagnetBlockTileEntity extends ChestTileEntity {
                 int z = this.getPos().getZ();
 
                 int r = (CrimsonMagnet.CONFIGURATION.magnetBlockRange.get());
-                AxisAlignedBB area = new AxisAlignedBB(x - r, y - r, z - r, x + r, y + r, z + r);
-
                 boolean isSound = false;
+                int itemCount = 0;
 
-                // Handle the XP !
-                if (CrimsonMagnet.CONFIGURATION.magnetBlockCollectXP.get()) {
-                    List<ExperienceOrbEntity> orbs = world.getEntitiesWithinAABB(ExperienceOrbEntity.class, area);
+                AxisAlignedBB area = new AxisAlignedBB(x - r, y - 2, z - r, x + r, y + 2, z + r);
+                List<ItemEntity> items = world.getEntitiesWithinAABB(EntityType.ITEM, area, item -> !item.getPersistentData().contains("PreventRemoteMovement"));
 
-                    if (orbs.size() != 0) {
-                        for (ExperienceOrbEntity orb : orbs) {
-                            if (orb.getXpValue() <= (this.tank.getCapacity() - this.tank.getFluidAmount())) {
-                                this.tank.fill(new FluidStack(fluidsInit.XP_FLUID.get(), orb.getXpValue()), IFluidHandler.FluidAction.EXECUTE);
-                                orb.remove();
+                if (items.size() > 0) {
+                    for (ItemEntity itemIE : items) {
+                        itemCount = itemIE.getItem().getCount();
 
-                                isSound = true;
+                        if (addItemToMagnetInventory(itemIE.getItem())) {
+                            itemIE.remove();
+                            isSound = true;
+
+                            if (CrimsonMagnet.CONFIGURATION.magnetBlockShowParticles.get())
+                                ((ServerWorld) world).spawnParticle(ParticleTypes.POOF, itemIE.getPosX(), itemIE.getPosY(), itemIE.getPosZ(), 2, 0D, 0D, 0D, 0D);
+
+                        } else {
+                            // if item count is different then some items MUST have been picked up
+                            // therefore play sound
+                            isSound = (itemIE.getItem().getCount() != itemCount);
+
+                            if (!this.getStackInSlot(1).isEmpty()) {
+                                if (CrimsonMagnet.CONFIGURATION.magnetBlockPlaySound.get())
+                                    world.playSound(null, itemIE.getPosition(), SoundEvents.BLOCK_FIRE_EXTINGUISH, SoundCategory.BLOCKS, 1f, 2f);
+
                                 if (CrimsonMagnet.CONFIGURATION.magnetBlockShowParticles.get())
-                                    ((ServerWorld) world).spawnParticle(ParticleTypes.CLOUD, orb.getPosX(), orb.getPosY(), orb.getPosZ(), 2, 0D, 0D, 0D, 0D);
+                                    ((ServerWorld) world).spawnParticle(world.getBlockState(itemIE.getPosition().offset(Direction.DOWN)).getBlock() == Blocks.SOUL_SOIL ? ParticleTypes.SOUL_FIRE_FLAME : ParticleTypes.FLAME, itemIE.getPosX(), itemIE.getPosY()+0.3, itemIE.getPosZ(), 5, 0D, 0D, 0D, 0D);
 
-                            }
-                            else {
-                                if (CrimsonMagnet.CONFIGURATION.magnetBlockVoid.get()) {
-                                    if (CrimsonMagnet.CONFIGURATION.magnetBlockShowParticles.get())
-                                        ((ServerWorld) world).spawnParticle(world.getBlockState(orb.getPosition().offset(Direction.DOWN)).getBlock() == Blocks.SOUL_SOIL ? ParticleTypes.SOUL_FIRE_FLAME : ParticleTypes.FLAME, orb.getPosX(), orb.getPosY(), orb.getPosZ(), 2, 0D, 0D, 0D, 0D);
-
-                                    if (CrimsonMagnet.CONFIGURATION.magnetBlockCollectSound.get())
-                                        world.playSound(null, orb.getPosition(), SoundEvents.BLOCK_FIRE_AMBIENT, SoundCategory.BLOCKS, 1f, 2f);
-
-                                    orb.remove();
-                                }
-                                else {
-                                    orb.setPosition(x + 0.5, y + 1, z + 0.5);
-                                    if (CrimsonMagnet.CONFIGURATION.magnetBlockShowParticles.get())
-                                        ((ServerWorld) world).spawnParticle(ParticleTypes.CLOUD, orb.getPosX(), orb.getPosY(), orb.getPosZ(), 2, 0D, 0D, 0D, 0D);
-                                }
-                            }
-                        }
-
-                        if (isSound) {
-                            if (CrimsonMagnet.CONFIGURATION.magnetBlockCollectSound.get())
-                                world.playSound(null, x, y, z, SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, SoundCategory.BLOCKS, 1f, 1f);
+                                itemIE.remove();
+                            } else
+                                itemIE.setPosition(x + 0.5, y + 1, z + 0.5);
                         }
                     }
+
+                    if (CrimsonMagnet.CONFIGURATION.magnetBlockPlaySound.get())
+                        if (isSound) world.playSound(null, x, y, z, SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.BLOCKS, 1f, 1.6f);
                 }
 
 
-                // NOTE: Start from a=2 because first 2 slots are xpBucketIn and xpBucketOut
-                // Handle the Items !
-                List<ItemEntity> items = world.getEntitiesWithinAABB(EntityType.ITEM, area, item -> !item.getPersistentData().contains("PreventRemoteMovement"));
+                if (!this.getStackInSlot(0).isEmpty()) {
+                    List<ExperienceOrbEntity> orbs = world.getEntitiesWithinAABB(ExperienceOrbEntity.class, area);
 
-                int isSpace;    // TODO: Could re-use 'r'
-                isSound = false;
+                    if (orbs.size() > 0) {
+                        isSound = false;
 
-                if (items.size() != 0) {
-                    // try to merge items found with existing items already in MagnetBlock inventory
-                    for (ItemEntity itemIE : items) {
-                        for (int a = 2; a < this.getSizeInventory(); a++) {
-                            if (this.getStackInSlot(a).getItem() == itemIE.getItem().getItem()) {
-                                isSpace = this.getStackInSlot(a).getMaxStackSize() - this.getStackInSlot(a).getCount();
-
-                                if (isSpace != 0) {
-                                    isSpace = Math.min(isSpace, itemIE.getItem().getCount());
-                                    this.getStackInSlot(a).grow(isSpace);
-                                    itemIE.getItem().shrink(isSpace);
-
-                                    isSound = true;
-                                    if (itemIE.getItem().getCount() == 0) break;
-                                }
-                            }
-                        }
-
-                        if (CrimsonMagnet.CONFIGURATION.magnetBlockShowParticles.get())
-                            ((ServerWorld) world).spawnParticle(ParticleTypes.CLOUD, itemIE.getPosX(), itemIE.getPosY(), itemIE.getPosZ(), 2, 0D, 0D, 0D, 0D);
-                    }
-
-                    // if items NOT isEmpty then add them into EMPTY slots
-                    // TODO: Test .getCount instead of isEmpty <-cheaper
-                    int a = 2;
-                    for (ItemEntity itemIE : items) {
-                        if (itemIE.getItem().getCount() != 0) {
-                            if (a<this.getSizeInventory()) {
-                                do {
-                                    if (this.getStackInSlot(a).isEmpty()) break;
-
-                                    a++;
-                                } while (a < this.getSizeInventory());
-                            }
-
-                            if (a<this.getSizeInventory()) {
-                                this.setInventorySlotContents(a, itemIE.getItem());
-
+                        for (ExperienceOrbEntity ORB : orbs) {
+                            ItemStack newOrb = new ItemStack(itemsInit.XP_ITEM.get());
+                            newOrb.setCount(Integer.min(64, ORB.getXpValue()));        // should never really get 1x Orb of large size, but just in case
+                            itemCount = newOrb.getCount();
+                            
+                            if (addItemToMagnetInventory(newOrb)) {
+                                ORB.remove();
                                 isSound = true;
-                                itemIE.remove();
-                            } else {
-                                if (CrimsonMagnet.CONFIGURATION.magnetBlockVoid.get()) {
-                                    if (CrimsonMagnet.CONFIGURATION.magnetBlockShowParticles.get())
-                                        ((ServerWorld) world).spawnParticle(world.getBlockState(itemIE.getPosition().offset(Direction.DOWN)).getBlock() == Blocks.SOUL_SOIL ? ParticleTypes.SOUL_FIRE_FLAME : ParticleTypes.FLAME, itemIE.getPosX(), itemIE.getPosY(), itemIE.getPosZ(), 2, 0D, 0D, 0D, 0D);
 
-                                    itemIE.remove();
+                                if (CrimsonMagnet.CONFIGURATION.magnetBlockShowParticles.get())
+                                    ((ServerWorld) world).spawnParticle(ParticleTypes.POOF, ORB.getPosX(), ORB.getPosY(), ORB.getPosZ(), 2, 0D, 0D, 0D, 0D);
+
+                            } else {
+                                isSound = (newOrb.getCount() != itemCount);
+
+                                if (!this.getStackInSlot(1).isEmpty()) {
+                                    if (CrimsonMagnet.CONFIGURATION.magnetBlockPlaySound.get())
+                                        world.playSound(null, ORB.getPosition(), SoundEvents.BLOCK_FIRE_EXTINGUISH, SoundCategory.BLOCKS, 1f, 2f);
+
+                                    if (CrimsonMagnet.CONFIGURATION.magnetBlockShowParticles.get())
+                                        ((ServerWorld) world).spawnParticle(world.getBlockState(ORB.getPosition().offset(Direction.DOWN)).getBlock() == Blocks.SOUL_SOIL ? ParticleTypes.SOUL_FIRE_FLAME : ParticleTypes.FLAME, ORB.getPosX(), ORB.getPosY() + 0.3, ORB.getPosZ(), 5, 0D, 0D, 0D, 0D);
+
+                                    ORB.remove();
                                 } else
-                                    itemIE.setPosition(x + 0.5, y + 1, z + 0.5);
+                                    ORB.setPosition(x + 0.5, y + 1, z + 0.5);
                             }
                         }
-                    }
 
-                    if (isSound) {
-                        if (CrimsonMagnet.CONFIGURATION.magnetBlockCollectSound.get())
-                            world.playSound(null, x, y, z, SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.BLOCKS, 1f, 1f);
+                        if (CrimsonMagnet.CONFIGURATION.magnetBlockPlaySound.get())
+                            if (isSound) world.playSound(null, x, y, z, SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, SoundCategory.BLOCKS, 1f, 1f);
                     }
                 }
             }
         }
     }
 
-    @Nonnull
-    @Override
-    public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> cap, @Nullable Direction side) {
-        if (cap == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY) return fluidHandler.cast();
+    private boolean addItemToMagnetInventory(ItemStack inputStack) {
+    int isSpace = 0;
+    int itemsToCopy = 0;
 
-        return super.getCapability(cap, side);
+        do {
+            int slot = getSimilarSlot(inputStack);
+            if (slot == -1) {
+                slot = getEmptySlot();
+                if (slot == -1) return false;
+
+                // TODO: Using actual ItemStack may cause a problem - because of the ItemIE.remove() ?!?!
+                this.setInventorySlotContents(slot, inputStack);    //  use ACTUAL ItemStack  ?!?!
+                return true;
+
+            } else {
+                isSpace = this.getStackInSlot(slot).getMaxStackSize() - this.getStackInSlot(slot).getCount();
+                itemsToCopy = Integer.min(isSpace, inputStack.getCount());
+
+                inputStack.shrink(itemsToCopy);
+                this.getStackInSlot(slot).grow(itemsToCopy);
+            }
+
+        } while (inputStack.getCount()>0);
+
+        return true;
+    }
+
+    private int getSimilarSlot(ItemStack inputStack) {
+        // Find similar stack in slot, else return -1
+        int isSpace;
+
+        for (int a = 2; a < this.getSizeInventory(); a++) {
+            if (this.getStackInSlot(a).getItem() == inputStack.getItem()) {
+                isSpace = this.getStackInSlot(a).getMaxStackSize() - this.getStackInSlot(a).getCount();
+
+                if (isSpace > 0) return a;
+            }
+        }
+
+        return -1;
+    }
+
+    private int getEmptySlot() {
+        // Find EMPTY stack slot, else return -1
+        for (int a = 2; a < this.getSizeInventory(); a++) {
+            if (this.getStackInSlot(a).isEmpty()) return a;
+        }
+
+        return -1;
     }
 
     @Override
     public CompoundNBT write(CompoundNBT compound) {
         // Super stores the Inventory and CustomName
-        this.tank.writeToNBT(compound);
         return super.write(compound);
     }
 
@@ -187,7 +181,6 @@ public class MagnetBlockTileEntity extends ChestTileEntity {
     public void read(BlockState state, CompoundNBT compound) {
         // Super reads the Inventory and CustomName
         super.read(state, compound);
-        this.tank.readFromNBT(compound);
     }
 
     @Override

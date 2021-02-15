@@ -2,12 +2,13 @@ package crimsonfluff.crimsonmagnet.tiles;
 
 import crimsonfluff.crimsonmagnet.CrimsonMagnet;
 import crimsonfluff.crimsonmagnet.blocks.BlockMagnet;
-import crimsonfluff.crimsonmagnet.containers.Container;
+import crimsonfluff.crimsonmagnet.containers.MagnetBlockContainer;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.ItemStackHelper;
+import net.minecraft.inventory.container.Container;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.ITickableTileEntity;
@@ -23,7 +24,7 @@ public class ChestTileEntity extends LockableLootTileEntity implements ITickable
 
     public ChestTileEntity(TileEntityType<?> typeIn) {
         super(typeIn);
-        this.chestContents = NonNullList.<ItemStack>withSize(11, ItemStack.EMPTY);
+        this.chestContents = NonNullList.withSize(11, ItemStack.EMPTY);
     }
 
     @Override
@@ -51,18 +52,14 @@ public class ChestTileEntity extends LockableLootTileEntity implements ITickable
 
         this.chestContents = NonNullList.withSize(this.getSizeInventory(), ItemStack.EMPTY);
 
-        if (!this.checkLootAndRead(compound)) {
-            ItemStackHelper.loadAllItems(compound, this.chestContents);
-        }
+        if (!this.checkLootAndRead(compound)) ItemStackHelper.loadAllItems(compound, this.chestContents);
     }
 
     @Override
     public CompoundNBT write(CompoundNBT compound) {
         super.write(compound);
 
-        if (!this.checkLootAndWrite(compound)) {
-            ItemStackHelper.saveAllItems(compound, this.chestContents);
-        }
+        if (!this.checkLootAndWrite(compound)) ItemStackHelper.saveAllItems(compound, this.chestContents);
 
         return compound;
     }
@@ -114,7 +111,7 @@ public class ChestTileEntity extends LockableLootTileEntity implements ITickable
 
     @Override
     public void setItems(NonNullList<ItemStack> itemsIn) {
-        this.chestContents = NonNullList.<ItemStack>withSize(11, ItemStack.EMPTY);
+        this.chestContents = NonNullList.withSize(11, ItemStack.EMPTY);
 
         for (int i = 0; i < itemsIn.size(); i++) {
             if (i < this.chestContents.size()) {
@@ -124,11 +121,10 @@ public class ChestTileEntity extends LockableLootTileEntity implements ITickable
     }
 
     @Override
-    protected net.minecraft.inventory.container.Container createMenu(int windowId, PlayerInventory playerInventory) {
-        return Container.createMagnetContainer(windowId, playerInventory, this);
+    protected Container createMenu(int windowId, PlayerInventory playerInventory) {
+        return new MagnetBlockContainer(windowId, playerInventory, this);
     }
 
     @Override
     public void tick() { }
 }
-
